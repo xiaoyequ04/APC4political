@@ -18,14 +18,17 @@ p_load("rio",
        "countrycode",
        "lmerTest",
        "modelsummary",
-       "dotwhisker")
+       "dotwhisker",
+       "ggplot2",
+       "optimx",
+       "emmeans")
 ```
 
 ## dataloda
 
 ```{r}
 #| echo: false
-load("./data/WVST.rdata")
+load("../data/WVST.rdata")
 wvs_china <- WVS_TimeSeries_1981_2022_spss_v3_0 %>%
   filter(.,COW_NUM == 710) %>%
   select(.,S020,COW_NUM,COW_ALPHA,E069_11,E069_12,E069_08,E069_07,E114,E115,E116,E117,E114,E115,E116,E117,E117B,E224,E225,E226,E227,E228,E229,E235,E236,E036,E037,E038,X001,X002,X003,X025,X025R,X045,X047_WVS,X047R_WVS,X007,S017,E023) %>%
@@ -102,8 +105,7 @@ wvs_china <- wvs_china %>%
 ## dataAnalysis
 
 ```{r}
-library(optimx)
-lm_gover <- lmerTest::lmer(trust_gover ~ ager + I(ager^2) + gender + edu + interstpol + marriage + class_sub + (1 | cohort10) + (1 | period),
+lm_gover <- lmerTest::lmer(trust_gover ~ ager + I(ager^2) + gender + edu + interstpol + marriage + class_sub + (1 | cohort5) + (1 | period),
                            data = wvs_china,
                            weights = weight,
                            # REML = TRUE
@@ -125,10 +127,6 @@ data1 <- exp(cbind(Est=fixef(lm_gover),
 #We transformed back the x axis from "age score" into actual age by adding 2 and then multiplying by 10.
 # exp函数用于计算自然对数的底e的幂次方
 
-library(emmeans)
-
-
-
 # (i.e. 0 means the participant is 20 years old, 1 means 30 years old, etc)
 # We use a for loop to calculate the probability of weekly cannabis use 
 # when the age "score" is between 0 and 5, with 0.5 increment.
@@ -149,15 +147,15 @@ for (i in 0:10) {
 # [type = "response"](https://www.r-bloggers.com/2019/03/getting-started-with-emmeans/)的介绍
 # 为此，我们可以使用类型参数。使用 type ="response"（响应）将返回原始标度的结果。当转换在模型中是显式的（例如 log(resp)）时，这种方法就会起作用，对于广义线性模型中的链接函数也是如此。
 
-plot <- ggplot(Age_eff, aes(x = (ager + 2)*10, y = emmean)) +
+plot_age <- ggplot(Age_eff, aes(x = (ager + 2)*10, y = emmean)) +
     geom_point() + 
     geom_line() +
     geom_errorbar(aes(ymin = asymp.LCL, ymax = asymp.UCL), width = 1) +
     xlab("Age") +
     ylab("Probability of weeky cannabis use")
     
-plot
-
+plot_age
+ggsave(filename = "../fig/effect_age.pdf")
 
 # [ranef](https://wenku.baidu.com/view/aa45e98915fc700abb68a98271fe910ef02dae5a.html?_wkts_=1727773099294) 用来提取模型的随机效应，提取的随机效应可以进一步可视化或者分析。
 # 如果模型中有多个随机效应项，可以通过索引来访问。
@@ -167,7 +165,7 @@ plot
 ## cohort effect
 
 ```{r}
-lm_cor <- lmerTest::lmer(trust_gover ~ ager + I(ager^2) + gender + edu + interstpol + marriage + class_sub + (1 | cohort10),
+lm_cor <- lmerTest::lmer(trust_gover ~ ager + I(ager^2) + gender + edu + interstpol + marriage + class_sub + (1 | cohort5),
                          data = wvs_china,
                          weights = weight)
 lm_per <- lmerTest::lmer(trust_gover ~ ager + I(ager^2) + gender + edu + interstpol + marriage + class_sub + (1 | period),
@@ -184,13 +182,13 @@ anova(lm_gover,lm_per)
 # Extract the random effect
 u0 <- ranef(lm_gover, condVar = TRUE)
 names(u0$period) <- "est"
-names(u0$cohort) <- "est"
+names(u0$cohort5) <- "est"
 
 #Extract the standard error
 period_eff <- data.frame(est = u0$period, 
                          se = sqrt(attr(u0[[2]], "postVar")[1, ,]),
                          period = c(1995, 2001, 2007, 2014, 2018))
-cohort_eff <- data.frame(est = u0$cohort, 
+cohort_eff <- data.frame(est = u0$cohort5, 
                          se = sqrt(attr(u0[[1]], "postVar")[1, ,]),
                          cohort = c("1905/1948", 
                                     "1949/1954", 
@@ -204,7 +202,7 @@ cohort_eff <- data.frame(est = u0$cohort,
                                     "1990/1994",
                                     "1995/2000"))
 
-cohort_eff <- data.frame(est = u0$cohort, 
+cohort_eff <- data.frame(est = u0$cohort10, 
                          se = sqrt(attr(u0[[1]], "postVar")[1, ,]),
                          cohort = c("1905/1948", 
                                     "1949/1958", 
@@ -233,6 +231,9 @@ plot_cohort <- ggplot(cohort_eff, aes(x = cohort, y = est)) +
   xlab("Cohort") + 
   ylab("Conditional log odds of the cohort effect")
 plot_cohort
+
+ggsave(plot_period,file = "../fig/effect_period.pdf")
+ggsave(plot_period,file = "../fig/effect_cohort.pdf")
 ```
 
 # Concept
