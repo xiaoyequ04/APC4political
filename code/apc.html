@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.353">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>apc_trust</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="apc_files/libs/clipboard/clipboard.min.js"></script>
+<script src="apc_files/libs/quarto-html/quarto.js"></script>
+<script src="apc_files/libs/quarto-html/popper.min.js"></script>
+<script src="apc_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="apc_files/libs/quarto-html/anchor.min.js"></script>
+<link href="apc_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="apc_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="apc_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="apc_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="apc_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">apc_trust</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="packageloda" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> packageLoda</h1>
+</section>
+<section id="wvs" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> wvs</h1>
+<section id="dataloda" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="dataloda"><span class="header-section-number">2.1</span> dataloda</h2>
+</section>
+<section id="datadesription" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="datadesription"><span class="header-section-number">2.2</span> dataDesription</h2>
+</section>
+<section id="dataanalysis" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="dataanalysis"><span class="header-section-number">2.3</span> dataAnalysis</h2>
+</section>
+<section id="cohort-effect" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="cohort-effect"><span class="header-section-number">2.4</span> cohort effect</h2>
+<section id="section" class="level3" data-number="2.4.1">
+<h3 data-number="2.4.1" class="anchored" data-anchor-id="section"><span class="header-section-number">2.4.1</span> </h3>
+</section>
+</section>
+<section id="concept" class="level2" data-number="2.5">
+<h2 data-number="2.5" class="anchored" data-anchor-id="concept"><span class="header-section-number">2.5</span> Concept</h2>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="true" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse show">
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li>S025:country-year</li>
+<li>S024:country-wave</li>
+<li>S017:weight</li>
+<li>X001:gender(1:male 2: female)</li>
+<li>X002:year of birth</li>
+<li>X003:age</li>
+<li>X025R:edu</li>
+<li>X007:marriage</li>
+<li>X045:人们有时会把自己划分到高低不同的阶层，您认为自己在社会上属于哪一个阶层？1：高层 5:下层 8:不知道</li>
+<li>X047_WVS：家庭平均收入阶层 1-10 最低-最高</li>
+<li>X047R_WVS：家庭平均收入阶层(3个组别)</li>
+<li>E023:您对政治感兴趣吗？1-4 很感兴趣-一点也不 9:不回答</li>
+<li>E069_11: 对中央政府的信任度</li>
+<li>E069_12：对党的信任度</li>
+<li>E069_08: 对行政机关的信任度</li>
+<li>E069_07：对人大的信任度</li>
+<li>E114-E117B: 下面我将列举一些不同形式的政治体制，请问假如在我国采用这种政治体制，您认为是非常好、好、不好，还是非常不好？
+<ul>
+<li>有一个不受人大选举干扰的强有力的领袖</li>
+<li>应该依据专家而不是政府的意见，进行决策</li>
+<li>实行军事统治</li>
+<li>实行民主政治体制</li>
+</ul></li>
+<li>E235: 民主的重要性 1-10</li>
+<li>E236:我国的民主程度 1-10</li>
+<li>E224-E229：
+<ul>
+<li>政府向富人收税补贴穷人</li>
+<li>宗教领袖可以解释法律</li>
+<li>人们通过自由选举来选择领导人</li>
+<li>政府提供失业救济</li>
+<li>当政府无能时军队应该接管</li>
+<li>人们的自由不受侵犯是受宪法保护的公民权利</li>
+</ul></li>
+<li>E035: 收入应该尽可能均等 vs 应该加大收入差距以鼓励个人工作</li>
+<li>E036：私营经济成分应该扩大 vs 国有经济成分应该扩大</li>
+<li>E037: 国家应该承担更多的责任保障每个人的生活 vs 个人应该承担更多的责任来养活自己</li>
+</ol>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="cbs" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> CBS</h1>
+<section id="cbs2002" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="cbs2002"><span class="header-section-number">3.1</span> cbs2002</h2>
+</section>
+<section id="cbs2008" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="cbs2008"><span class="header-section-number">3.2</span> cbs2008</h2>
+</section>
+<section id="cbs2011" class="level2" data-number="3.3">
+<h2 data-number="3.3" class="anchored" data-anchor-id="cbs2011"><span class="header-section-number">3.3</span> cbs2011</h2>
+</section>
+<section id="cbs2014" class="level2" data-number="3.4">
+<h2 data-number="3.4" class="anchored" data-anchor-id="cbs2014"><span class="header-section-number">3.4</span> cbs2014</h2>
+</section>
+<section id="cbs2019" class="level2" data-number="3.5">
+<h2 data-number="3.5" class="anchored" data-anchor-id="cbs2019"><span class="header-section-number">3.5</span> cbs2019</h2>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li>目前对<strong>党的信任</strong>尚未编码，除了2008还是2002年没有对党的信任，其他年份都有。</li>
+</ol>
+</div>
+</div>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

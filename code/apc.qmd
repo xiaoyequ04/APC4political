@@ -5,14 +5,18 @@ format:
     number-sections: true
 editor: visual
 ---
-
+# packageLoda
 ```{r Prelode}
+#| label: package
+#| eval: false
+#| echo: false
 set.seed(0930)
 options (warn = -1)
 library(pacman)
 p_load("rio",
        "here",
        "tidyverse",
+       "haven",
        "car",
        "readxl",
        "countrycode",
@@ -24,15 +28,19 @@ p_load("rio",
        "emmeans")
 ```
 
+# wvs
 ## dataloda
 
 ```{r}
+#| lable: wvs
+#| eval: false
 #| echo: false
-load("../data/WVST.rdata")
+load("../data/wvs/WVST.rdata")
 wvs_china <- WVS_TimeSeries_1981_2022_spss_v3_0 %>%
   filter(.,COW_NUM == 710) %>%
-  select(.,S020,COW_NUM,COW_ALPHA,E069_11,E069_12,E069_08,E069_07,E114,E115,E116,E117,E114,E115,E116,E117,E117B,E224,E225,E226,E227,E228,E229,E235,E236,E036,E037,E038,X001,X002,X003,X025,X025R,X045,X047_WVS,X047R_WVS,X007,S017,E023) %>%
+  select(.,S002VS,S020,COW_NUM,COW_ALPHA,E069_11,E069_12,E069_08,E069_07,E114,E115,E116,E117,E114,E115,E116,E117,E117B,E224,E225,E226,E227,E228,E229,E235,E236,E036,E037,E035,X001,X002,X003,X025,X025R,X045,X047_WVS,X047R_WVS,X007,S017,E023) %>%
   dplyr::rename(
+    wave = S002VS,
     period = S020,
     country_name = COW_ALPHA ,
     country_code = COW_NUM,
@@ -41,35 +49,38 @@ wvs_china <- WVS_TimeSeries_1981_2022_spss_v3_0 %>%
     age = X003
   ) %>%
   mutate(
-    across(.cols = where(is.numeric) & !c(country_name,period,country_code,weight,yearbirth),
+    across(.cols = where(is.numeric) & !c(country_name,wave,period,country_code,weight,yearbirth),
            ~if_else(.x < 0, NA_real_, .x),
           .names = "{.col}_na")
-  )
-
+  ) 
+rm(WVS_TimeSeries_1981_2022_spss_v3_0)
 wvs_china$gender <- 2 - wvs_china$X001_na #(0:male;1:female)
 wvs_china$edu <- wvs_china$X025R_na
 wvs_china$marriage <- Recode(wvs_china$X007_na,"2:6 = 0")
 wvs_china$class_sub <- wvs_china$X045_na
 wvs_china$class_fam <- wvs_china$X047_WVS_na
-wvs_china$interstpol <-  5 - wvs_china$E023
-wvs_china$trust_gover <- 5 - wvs_china$E069_11
-wvs_china$trust_party <- 5 - wvs_china$E069_12
-wvs_china$trust_civil <- 5 - wvs_china$E069_08
-wvs_china$trust_parli <- 5 - wvs_china$E069_07
+wvs_china$interstpol <-  5 - wvs_china$E023_na
+wvs_china$trust_gover <- 5 - wvs_china$E069_11_na
+wvs_china$trust_gover_max <- Recode(wvs_china$trust_gover,"1:2 = 0; 3:4 = 1")
+wvs_china$trust_party <- 5 - wvs_china$E069_12_na
+wvs_china$trust_party_max <- Recode(wvs_china$trust_party,"1:2 = 0; 3:4 = 1")
+wvs_china$trust_civil <- 5 - wvs_china$E069_08_na
+wvs_china$trust_parli <- 5 - wvs_china$E069_07_na
 wvs_china$E226_na[wvs_china$E226_na == 0] <- NA
 wvs_china$E224_na[wvs_china$E224_na == 0] <- NA
-wvs_china$dempro <- wvs_china$E226_na + wvs_china$E229_na
-wvs_china$demuti <- wvs_china$E224_na + wvs_china$E227_na
+wvs_china$E227_na[wvs_china$E227_na == 0] <- NA
+wvs_china$E229_na[wvs_china$E229_na == 0] <- NA
+wvs_china$dempro <- wvs_china %>%
+  select(.,c(E226_na,E229_na)) %>%
+  rowMeans(na.rm = TRUE) 
+wvs_china$demuti <- wvs_china %>%
+  select(.,c(E224_na,E227_na)) %>%
+  rowMeans(na.rm = TRUE)
 wvs_china$demimportant <- wvs_china$E235_na
 wvs_china$demlevel <- wvs_china$E236_na
 
-wvs_china$income <- wvs_china$E036_na
-wvs_china$ecoprivate <- 11 - wvs_china$E037_na
-wvs_china$responsibility <- wvs_china$E038_na
 
-wvs_china$ager <- (wvs_china$age)/10  - 2
-wvs_china$ager2 <- wvs_china$ager*2
-
+wvs_china$agez <- scales::rescale(wvs_china$age,to = c(0,1))
 wvs_china <- wvs_china %>%
   mutate(
     cohort5 = case_when(
@@ -91,28 +102,41 @@ wvs_china <- wvs_china %>%
       yearbirth %in% c(1959:1968) ~ 3,
       yearbirth %in% c(1969:1978) ~ 4,
       yearbirth %in% c(1979:1988) ~ 5,
-      yearbirth %in% c(1989:1998) ~ 6,
-      yearbirth %in% c(1999:2000) ~ 7
-      
+      yearbirth %in% c(1989:2000) ~ 6
     )
   )
 
 wvs_china <- wvs_china %>%
   mutate(across(c(period,gender,edu,cohort5,cohort10),as.factor))
 
+write.csv(wvs_china,file = "../data/wvs_china.csv")
+
+```
+
+## dataDesription
+
+```{r}
+#| eval: false
+#| echo: false
+t1 <- modelsummary::datasummary(marriage + class_sub + class_fam + interstpol + trust_gover + trust_gover_max +  trust_party + trust_party_max + trust_civil + trust_parli + dempro + demuti + demimportant + demlevel + demperform
+  ~ Min + Max + Mean + SD + (Number = N),
+  data = wvs_china
+  )
 ```
 
 ## dataAnalysis
 
 ```{r}
-lm_gover <- lmerTest::lmer(trust_gover ~ ager + I(ager^2) + gender + edu + interstpol + marriage + class_sub + (1 | cohort5) + (1 | period),
-                           data = wvs_china,
-                           weights = weight,
-                           # REML = TRUE
-                           control = lmerControl(
-                           optimizer ='optimx', optCtrl=list(method='L-BFGS-B'))
+#| eval: false
+#| echo: false
+lm_gover <- glmer(trust_gover_max ~ agez + gender + edu + interstpol + marriage + class_sub + (1|cohort10) + (1|period),
+                  family = binomial,
+                  data = wvs_china)
+                  weights = weight,
+                  # REML = TRUE
+                  control = glmerControl(
+                    optimizer ='optimx', optCtrl=list(method='L-BFGS-B'))
 )
-                           
                            
 summary(lm_gover)
 confint(lm_gover, level = 0.95, method = "Wald")
@@ -132,7 +156,7 @@ data1 <- exp(cbind(Est=fixef(lm_gover),
 # when the age "score" is between 0 and 5, with 0.5 increment.
 # The calculated probability is stored in a new data frame Age_eff
 
-emm <- emmeans(lm_gover,  ~ ager + I(ager^2))
+emm <- emmeans(lm_gover,  ~ age + I(age^2))
 Age_eff = data.frame()
 for (i in 0:10) {
   emm <- emmeans(lm_gover,  ~ ager + I(ager^2),
@@ -165,10 +189,12 @@ ggsave(filename = "../fig/effect_age.pdf")
 ## cohort effect
 
 ```{r}
-lm_cor <- lmerTest::lmer(trust_gover ~ ager + I(ager^2) + gender + edu + interstpol + marriage + class_sub + (1 | cohort5),
+#| eval: false
+#| echo: false
+lm_cor <- lmerTest::lmer(trust_gover ~ age + I(age^2) + gender + edu + interstpol + marriage + class_sub + (1 | cohort10),
                          data = wvs_china,
                          weights = weight)
-lm_per <- lmerTest::lmer(trust_gover ~ ager + I(ager^2) + gender + edu + interstpol + marriage + class_sub + (1 | period),
+lm_per <- lmerTest::lmer(trust_gover ~ age + I(age^2) + gender + edu + interstpol + marriage + class_sub + (1 | period),
                          data = wvs_china,
                          weights = weight)
 anova(lm_gover,lm_cor)
@@ -178,16 +204,27 @@ anova(lm_gover,lm_per)
 ### 
 
 ```{r}
+#| eval: false
+#| echo: false
+lm_gover <- lmerTest::lmer(trust_party ~ agez + gender + edu + interstpol + marriage + class_sub + (1|cohort10) + (1|period),
+                  data = wvs_china,
+                  weights = weight)
+                  # REML = TRUE
+                  control = glmerControl(
+                    optimizer ='optimx', optCtrl=list(method='L-BFGS-B'))
+)
 
+data2 <- wvs_china %>%
+  select(.,period,trust_gover,trust_party,trust_party_max)
 # Extract the random effect
 u0 <- ranef(lm_gover, condVar = TRUE)
 names(u0$period) <- "est"
-names(u0$cohort5) <- "est"
+names(u0$cohort10) <- "est"
 
 #Extract the standard error
 period_eff <- data.frame(est = u0$period, 
                          se = sqrt(attr(u0[[2]], "postVar")[1, ,]),
-                         period = c(1995, 2001, 2007, 2014, 2018))
+                         period = c(2001, 2007, 2013, 2018))
 cohort_eff <- data.frame(est = u0$cohort5, 
                          se = sqrt(attr(u0[[1]], "postVar")[1, ,]),
                          cohort = c("1905/1948", 
@@ -209,8 +246,7 @@ cohort_eff <- data.frame(est = u0$cohort10,
                                     "1959/1968",
                                     "1969/1978",
                                     "1979/1988",
-                                    "1989/1998",
-                                    "1999/2000"))
+                                    "1989/2000"))
 
 period_eff$upper <- period_eff$est + 1.96*period_eff$se
 period_eff$lower <- period_eff$est - 1.96*period_eff$se
@@ -233,12 +269,14 @@ plot_cohort <- ggplot(cohort_eff, aes(x = cohort, y = est)) +
 plot_cohort
 
 ggsave(plot_period,file = "../fig/effect_period.pdf")
-ggsave(plot_period,file = "../fig/effect_cohort.pdf")
+ggsave(plot_cohort,file = "../fig/effect_cohort.pdf")
 ```
 
-# Concept
+## Concept
 
 ```{r}
+#| eval: false
+#| echo: false
 lm_pro <- lmerTest::lmer(dempro ~ ager + I(ager^2) + gender + edu + interstpol + marriage + class_sub + (1|period),
                          data = wvs_china,
                          weights = weight)
@@ -265,7 +303,7 @@ anova(lm_pro,lm_pro_coh)
 anova(lm_pro,lm_pro_per)
 ```
 
-::: collout-tip
+::: {.callout-tip collapse=false}
 1.  S025:country-year
 2.  S024:country-wave
 3.  S017:weight
@@ -296,7 +334,499 @@ anova(lm_pro,lm_pro_per)
     -   政府提供失业救济
     -   当政府无能时军队应该接管
     -   人们的自由不受侵犯是受宪法保护的公民权利
-21. E036: 收入应该尽可能均等 vs 应该加大收入差距以鼓励个人工作
-22. E037：私营经济成分应该扩大 vs 国有经济成分应该扩大
-23. E038: 国家应该承担更多的责任保障每个人的生活 vs 个人应该承担更多的责任来养活自己
+21. E035: 收入应该尽可能均等 vs 应该加大收入差距以鼓励个人工作
+22. E036：私营经济成分应该扩大 vs 国有经济成分应该扩大
+23. E037: 国家应该承担更多的责任保障每个人的生活 vs 个人应该承担更多的责任来养活自己
+
 :::
+
+
+
+
+# CBS
+## cbs2002
+
+```{r cbs2002, echo=FALSE}
+#| label: cbs2002
+#| eval: false
+#| echo: false
+# no socilalevel
+cbs2002_raw <- read_dta("../data/cbs/cbs2002.dta") %>%
+  mutate(year = 2002,
+         wave = 1)
+cbs2002_raw[cbs2002_raw < 0] <- NA
+cbs2002 <- cbs2002_raw %>%
+  dplyr::select(.,q1,province_id,year,wave,v2,v4,v14,v23,v24,v82,v83,v84,v111,v110,v109,v101,v123,v73a,v73b,v73c,v73d,i3c,i4,i5a,i5b,i5c,i5d,i8)  %>%
+  rename(id = q1,
+         province = province_id)
+
+# area
+cbs2002$province <- as.character(cbs2002$province) %>%
+  dplyr::recode(
+         "11" = "北京市", 
+         "12" = "天津市", 
+         "13" = "河北省", 
+         "14" = "山西省", 
+         "15" = "内蒙古自治区", 
+         "21" = "辽宁省", 
+         "22" = "吉林省", 
+         "23" = "黑龙江省", 
+         "31" = "上海市", 
+         "32" = "江苏省", 
+         "33" = "浙江省", 
+         "34" = "安徽省", 
+         "35" = "福建省", 
+         "36" = "江西省", 
+         "37" = "山东省", 
+         "41" = "河南省", 
+         "42" = "湖北省", 
+         "43" = "湖南省", 
+         "44" = "广东省", 
+         "45" = "广西壮族自治区", 
+         "46" = "海南省", 
+         "50" = "重庆市", 
+         "51" = "四川省", 
+         "52" = "贵州省", 
+         "53" = "云南省", 
+         "54" = "西藏自治区", 
+         "61" = "陕西省", 
+         "62" = "甘肃省", 
+         "63" = "青海省", 
+         "64" = "宁夏回族自治区", 
+         "65" = "新疆维吾尔自治区")
+
+cbs2002$female <- cbs2002$v82 - 1
+cbs2002$age <- cbs2002$v83
+cbs2002$marriage <- Recode(cbs2002$v123,"9 = NA")
+cbs2002$hukouRural <- Recode(cbs2002$v2, "2 = 0; c(3,7) = NA") #0:城镇户口 1:农村户口
+cbs2002$race <- Recode(cbs2002$v84, "2:33 = 0; c(0,98) = 0") #1:汉族
+cbs2002$party <- Recode(cbs2002$v111,"c(1,2,4,9) = 0; 3 =1") 
+cbs2002$edu <- Recode(cbs2002$v110, "0:1 = 1; 2 = 2; 3:4 = 3; 5 = 4; 6 = 5; 9 = NA")
+cbs2002$interstpol <- 5 - cbs2002$v14
+cbs2002$interstpol[cbs2002$interstpol < 0] <- NA
+cbs2002$socialLevel <- Recode(cbs2002$v24,"8:9 = NA")
+
+# political trust
+cbs2002$trust_party <- cbs2002$v73d
+cbs2002$trust_party_z <- Recode(cbs2002$v73d,"c(0,8,9) = NA") 
+cbs2002$trust_party_z <- scales::rescale(as.numeric(cbs2002$trust_party_z),to = c(0,1))
+cbs2002$trust_partyR <- Recode(cbs2002$v73d,"1:3 = 0;4:6 = 1; c(0,8,9) = NA") 
+cbs2002$trust_party_max <- Recode(cbs2002$v73d,"1:5 = 0; 6 = 1; c(0,8,9) = NA") 
+
+cbs2002$trust_gover <- cbs2002$v73b
+cbs2002$trust_gover_z <- Recode(cbs2002$v73b,"c(0,8,9) = NA") 
+cbs2002$trust_gover_z <- scales::rescale(as.numeric(cbs2002$trust_gover_z),to = c(0,1)) 
+cbs2002$trust_goverR <- Recode(cbs2002$v73b,"4:6 = 1; 1:3 = 0; c(0,8,9) = NA") 
+cbs2002$trust_gover_max <- Recode(cbs2002$v73b,"1:5 = 0; 6 = 1;c(0,8,9) = NA")
+
+cbs2002$trust_local <- cbs2002$v73c
+cbs2002$trust_local_z <- Recode(cbs2002$v73c,"c(0,8,9) = NA") 
+cbs2002$trust_local_z <- scales::rescale(as.numeric(cbs2002$trust_local_z),to = c(0,1)) 
+cbs2002$trust_localR <- Recode(cbs2002$v73c,"4:6 = 1; 1:3 = 0; c(0,8,9) = NA")
+
+
+cbs2002$trust_court <- cbs2002$v73a
+cbs2002$trust_court_z <- Recode(cbs2002$v73a,"c(0,8,9) = NA") 
+cbs2002$trust_court_z <- scales::rescale(as.numeric(cbs2002$trust_court_z),to = c(0,1)) 
+cbs2002$trust_courtR <- Recode(cbs2002$v73a,"4:6 = 1; 1:3 = 0; c(0,8,9) = NA")
+
+
+# dem
+cbs2002$demlevel <- cbs2002$i3c
+cbs2002$demsuit <- Recode(cbs2002$i4,"98:99 = NA")
+cbs2002$demsatisify <- 5 - cbs2002$i8
+cbs2002$demsatisify[cbs2002$demsatisify < 0] <- NA
+cbs2002$i5a <- Recode(cbs2002$i5a,"8:9 = NA")
+cbs2002$demelect <- 5 - cbs2002$i5a
+cbs2002$i5b <- Recode(cbs2002$i5b,"8:9 = NA")
+cbs2002$expert <- 5 - cbs2002$i5b
+cbs2002$i5c <- Recode(cbs2002$i5c,"8:9 = NA")
+cbs2002$compete <- 5 - cbs2002$i5c
+cbs2002$i5d <- Recode(cbs2002$i5d,"8:9 = NA")
+cbs2002$army <- 5 - cbs2002$i5d
+
+# write.csv(cbs2002,file = "../dataclean/cbs2002.csv")
+```
+
+## cbs2008
+
+```{r cbs2008}
+#| label: cbs2008
+#| eval: false
+#| echo: false
+cbs2008_raw <- haven::read_dta("../data/cbs/cbs2008.dta") %>%
+  mutate(year = 2008,
+         wave = 1) 
+cbs2008_raw[cbs2008_raw < 0] <- NA
+cbs2008 <- cbs2008_raw %>%
+  dplyr::select(.,number,PROV,year,wave,a1,b1,b6,c9,j1,j2,j3,j3a,j4,j8,j28,j35,f30a,f30b,f30c,f30d,g1n,g1o,h9,h11a,h11d,h12) %>%
+  rename(id = number,
+         province = PROV)
+
+# area
+cbs2008$province <- as.character(cbs2008$province) %>%
+  dplyr::recode(
+         "11" = "北京市", 
+         "12" = "天津市", 
+         "13" = "河北省", 
+         "14" = "山西省", 
+         "15" = "内蒙古自治区", 
+         "21" = "辽宁省", 
+         "22" = "吉林省", 
+         "23" = "黑龙江省", 
+         "31" = "上海市", 
+         "32" = "江苏省", 
+         "33" = "浙江省", 
+         "34" = "安徽省", 
+         "35" = "福建省", 
+         "36" = "江西省", 
+         "37" = "山东省", 
+         "41" = "河南省", 
+         "42" = "湖北省", 
+         "43" = "湖南省", 
+         "44" = "广东省", 
+         "45" = "广西壮族自治区", 
+         "46" = "海南省", 
+         "50" = "重庆市", 
+         "51" = "四川省", 
+         "52" = "贵州省", 
+         "53" = "云南省", 
+         "54" = "西藏自治区", 
+         "61" = "陕西省", 
+         "62" = "甘肃省", 
+         "63" = "青海省", 
+         "64" = "宁夏回族自治区", 
+         "65" = "新疆维吾尔自治区")
+
+cbs2008$female <- cbs2008$j1 - 1
+cbs2008$age <- cbs2008$j2
+cbs2008$marriage <- Recode(cbs2008$j35,"c(1,2,3,4,5,6) = 0; 2 = 1; 9 = NA")
+cbs2008$hukouRural <- Recode(cbs2008$a1, "2 = 0; c(3,9) = NA") #0:城镇户口 1:农村户口
+cbs2008$race <- Recode(cbs2008$j4, "2 = 0; c(98,99) = 0") 
+cbs2008$party <- Recode(cbs2008$j28,"1:2 = 0; 3:4 =1; 9 = NA") 
+cbs2008$edu <- Recode(cbs2008$j3, "0:1 = 1; 2:3 = 2; 4:6 = 3; 7 = 4; 8 = 5; 9 = NA")
+cbs2008$interstpol <- 5 - cbs2008$b6
+cbs2008$interstpol[cbs2008$interstpol < 0] <- NA
+cbs2008$socialLevel <- Recode(cbs2008$j25,"98:99 = NA")
+cbs2008$ecoLevel <- 6 - cbs2008$c9
+cbs2008$ecoLevel <- Recode(cbs2008$ecoLevel,"-3:-2 = NA")
+
+# political trust
+cbs2008$trust_party <- cbs2008$f30d
+cbs2008$trust_party_z <- Recode(cbs2008$f30d,"7:9 = NA")
+cbs2008$trust_party_z <- rescale(as.numeric(cbs2008$trust_party_z),to = c(0,1))
+cbs2008$trust_party_max <- Recode(trust_party,"1:5 = 0; 6 = 1; 7:9 = NA")
+cbs2008$trust_partyR <- Recode(trust_party,"1:3 = 0; 4: 6 = 1; 7:9 = NA")
+
+cbs2008$trust_gover <- cbs2008$f30b
+cbs2008$trust_gover_z <- Recode(cbs2008$f30b,"7:9 = NA")
+cbs2008$trust_gover_z <- rescale(as.numeric(cbs2008$trust_gover_z),to = c(0,1)) 
+cbs2008$trust_goverR <- Recode(cbs2008$f30b,"4:6 = 1; 1:3 = 0; 7:9 = NA") 
+cbs2008$trust_gover_max <- Recode(cbs2008$f30b,"6 = 1; 1:5 = 0; 7:9 = NA")
+
+cbs2008$trust_local <- cbs2008$f30c
+cbs2008$trust_local_z <- Recode(cbs2008$f30c,"7:9 = NA") 
+cbs2008$trust_local_z <- rescale(as.numeric(cbs2008$trust_local_z),to = c(0,1)) 
+cbs2008$trust_localR <- Recode(cbs2008$f30c,"4:6 = 1; 1:3 = 0; 7:9 = NA")  
+
+cbs2008$trust_court <- cbs2008$f30a
+cbs2008$trust_court_z <- Recode(cbs2008$f30a,"7:9 = NA") 
+cbs2008$trust_court_z <- rescale(as.numeric(cbs2008$trust_court_z),to = c(0,1)) 
+cbs2008$trust_courtR <- Recode(cbs2008$f30a,"4:6 = 1; 1:3 = 0; 7:9 = NA")
+
+# dem
+cbs2008$demlevel <- cbs2008$h11d
+cbs2008$demlevel_usa <- cbs2008$h11a
+cbs2008$demsuit <- Recode(cbs2008$h12,"98:99 = NA")
+cbs2008$demsatisify <- 5 - cbs2002$h9
+cbs2008$demsatisify[cbs2008$demsatisify < 0] <- NA
+
+cbs2008$leader <- 5 - cbs2008$g1n
+cbs2008$army <- 5 - cbs2008$g1o
+
+
+# write.csv(cbs2008,file = "../dataclean/cbs2008.csv")
+
+```
+
+## cbs2011
+
+```{r cbs2011}
+#| label: cbs2011
+#| eval: false
+#| echo: false
+cbs2011_raw <- haven::read_dta("../data/cbs/cbs2011.dta") %>%
+  mutate(year = 2011,
+         wave = 1) %>%
+  rename(id = idnumber,
+         province = PROVINCE)
+cbs2011_raw[cbs2011_raw < 0] <- NA
+cbs2011 <- select(.,id,province,year,wave,A1,A2,A8,A15,B1,B11a,B11b,B13,C17a,C17h,C17b,C17c,F12,F13,F14,F15,F16,F17,F18,F19,SE1,SE2,SE3,SE4,SE21,SE22,SE29)
+cbs2011$province <- as.character(cbs2011$province) %>%
+  dplyr::recode(
+         "1" = "上海市",
+         "2" = "辽宁省",
+         "3" = "河南省",
+         "4" = "广东省",
+         "5" = "甘肃省", 
+         "6" = "北京市",
+         "7" = "天津市", 
+         "8" = "河北省", 
+         "9" = "山西省",
+         "10" = "吉林省",
+         "11" = "黑龙江省",
+         "12" = "江苏省",
+         "13" = "浙江省", 
+         "14" = "安徽省",
+         "15" = "福建省",
+         "16" = "江西省",
+         "17" = "山东省",
+         "18" = "湖北省", 
+         "19" = "湖南省", 
+         "20" = "广西壮族自治区",
+         "21" = "重庆市", 
+         "22" = "四川省", 
+         "23" = "贵州省", 
+         "24" = "云南省", 
+         "25" = "陕西省") 
+
+
+cbs2011$female <- cbs2011$SE1 - 1
+cbs2011$age <- cbs2011$SE2
+cbs2011$hukouRural <- Recode(cbs2011$A1,"2 = 0; c(3,9) = NA")
+cbs2011$marriage <- Recode(cbs2011$SE29,"2 = 1; c(1,3,4,5,6) = 0; 9 = NA")
+cbs2011$party <- Recode(cbs2011$SE22,"c(1,2,9) = 0;3:4 = 1")
+cbs2011$race <- Recode(cbs2011$SE4,"c(98,99,2) = 0")
+cbs2011$edu <- Recode(cbs2011$SE3,"0:1 = 1; 2:3 = 2;4:6 = 3; 7 = 4; 8 = 5; 9 = NA")
+cbs2011$interstpol <- Recode(cbs2011$A8,"9 = NA")
+cbs2011$socialLevel <- Recode(cbs2011$SE21,"98:99 = NA")
+
+# politicaltrust
+cbs2011$trust_party <- cbs2011$C17c
+cbs2011$trust_party_z <- Recode(cbs2011$C17c,"7:9 = NA")
+cbs2011$trust_party_z <- rescale(as.numeric(cbs2011$trust_party_z),to = c(0,1))
+cbs2011$trust_partyR <- Recode(cbs2011$C17b,"1:3 = 0;4:6 = 1; 7:9 = NA")
+cbs2011$trust_party_max <- Recode(cbs2011$C17b,"6 = 1; 1:5 = 0; 7:9 = NA")
+
+cbs2011$trust_gover <- cbs2011$C17b
+cbs2011$trust_gover_z <- Recode(cbs2011$C17b,"7:9 = NA")
+cbs2011$trust_gover_z <- rescale(as.numeric(cbs2011$trust_gover_z),to = c(0,1))
+cbs2011$trust_goverR <- Recode(cbs2011$C17b,"1:3 = 0;4:6 = 1; 7:9 = NA")
+cbs2011$trust_gover_max <- Recode(cbs2011$C17b,"6 = 1; 1:5 = 0; 7:9 = NA")
+
+cbs2011$trust_court <- cbs2011$C17a
+cbs2011$trust_court_z <- Recode(cbs2011$C17a,"7:9 = NA")
+cbs2011$trust_court_z <- rescale(as.numeric(cbs2011$trust_court_z),to = c(0,1))
+cbs2011$trust_courtR <- Recode(cbs2011$C17a,"1:3 = 0; 4:6 = 1; 7:9 = NA")
+
+cbs2011$trust_local <- cbs2011$C17h
+cbs2011$trust_local_z <- Recode(cbs2011$C17h,"7:9 = NA")
+cbs2011$trust_local_z <- rescale(as.numeric(cbs2011$trust_local_z),to = c(0,1))
+cbs2011$trust_localR <- Recode(cbs2011$C17h,"1:3 = 0; 4:6 = 1;7:9 = NA")
+
+
+# dem
+cbs2011$demsuit <- Recode(cbs2011$B1,"98:99 = NA")
+cbs2011$demlevel <- cbs2011$B11a
+cbs2011$demlevel_usa <- cbs2011$B11b
+cbs2011$demsatisify <- 5 - cbs2011$B13
+cbs2011$demsatisify [cbs2011$demsatisify < 0] <- NA
+
+
+cbs2011$
+
+cbs2011$leader <- 5 - cbs2011$F16
+cbs2011$leader[cbs2011$leader < 0] <- NA
+cbs2011$expert <- 5 - cbs2011$F17
+cbs2011$expert[cbs2011$expert < 0] <- NA
+cbs2011$compete <- 5 - cbs2011$F18
+cbs2011$compete[cbs2011$compete < 0] <- NA
+cbs2011$army <- 5 - cbs2011$F19
+cbs2011$army[cbs2011$army < 0] <- NA
+
+```
+
+## cbs2014
+
+```{r cbs2014}
+#| label: cbs2014
+#| eval: false
+#| echo: false
+
+cbs2014_raw <- haven::read_sav("../data/cbs/cbs2014.sav") %>%
+  mutate(year = 2014,
+         wave = 1)
+
+cbs2014_raw[cbs2014_raw < 0] <- NA
+cbs2014 <- cbs2014_raw %>%
+  select(.,CASEID,Proid,A1,A2,A3A,A4,B1,B11,B18,B19,C19,F7A,F7B,F9,F10,F11,F12,F22A,F22B,F22C,F22D,SE1,SE1A,SE9,SE17,SE8,SE4,SE3,SE2,E1A,E1B,E1H,year,wave) %>%
+  rename(id = CASEID,
+         province = Proid)
+cbs2014$province <- as.character(cbs2014$province) %>%
+  dplyr::recode(
+         "11" = "北京市", 
+         "12" = "天津市", 
+         "13" = "河北省", 
+         "14" = "山西省", 
+         "15" = "内蒙古自治区", 
+         "21" = "辽宁省", 
+         "22" = "吉林省", 
+         "23" = "黑龙江省", 
+         "31" = "上海市", 
+         "32" = "江苏省", 
+         "33" = "浙江省", 
+         "34" = "安徽省", 
+         "35" = "福建省", 
+         "36" = "江西省", 
+         "37" = "山东省", 
+         "41" = "河南省", 
+         "42" = "湖北省", 
+         "43" = "湖南省", 
+         "44" = "广东省", 
+         "45" = "广西壮族自治区", 
+         "46" = "海南省", 
+         "50" = "重庆市", 
+         "51" = "四川省", 
+         "52" = "贵州省", 
+         "53" = "云南省", 
+         "54" = "西藏自治区", 
+         "61" = "陕西省", 
+         "62" = "甘肃省", 
+         "63" = "青海省", 
+         "64" = "宁夏回族自治区", 
+         "65" = "新疆维吾尔自治区")
+
+
+cbs2014$female <- Recode(cbs2014$A1,"1 = 0; 2 = 1; 9 = NA") 
+cbs2014$age <- cbs2014$A3A
+cbs2014$corhort <- Recode(cbs2014$age,"18:29 = 1; 30:49 = 2; 50:69 = 3; 70:99 = 4")
+# 99岁的有133个人
+cbs2014$marriage <- Recode(cbs2014$SE17,"c(1,3,4,5,6) = 0; 2 = 1; 9 = NA")
+cbs2014$hukouRural <- Recode(cbs2014$A2,"2 = 0; c(3,9) = NA")
+cbs2014$race <- Recode(cbs2014$A4,"c(8,9,2) = 0")
+cbs2014$edu <- Recode(cbs2014$SE1, "0:1 = 1; 2:3 = 2; 4:6 = 3; 7 = 4;8 = 5; 9 = NA")
+cbs2014$party <- Recode(cbs2014$SE9,"3:4 = 1; c(1,2,9) = 0")
+cbs2014$socialLevel <- Recode(cbs2014$SE8,"98:99 = NA")
+cbs2014$ecolevel <- 6 - cbs2014$B18
+cbs2014$ecolevel[cbs2014$ecolevel < 0] <- NA
+
+# politicaltrust
+cbs2014$trust_gover <- cbs2014$E1B
+cbs2014$trust_gover_z <- Recode(cbs2014$E1B,"7:9 = NA") 
+cbs2014$trust_gover_z <- scales::rescale(as.numeric(cbs2014$trust_gover_z),to = c(0,1)) 
+cbs2014$trust_goverR <- Recode(cbs2014$E1B,"4:6 = 1; 1:3 = 0; 7:9 = NA") 
+cbs2014$trust_gover_max <- Recode(cbs2014$E1B,"6 = 1; 1:5 = 0; 7:9 = NA")
+
+cbs2014$trust_local <- cbs2014$E1H
+cbs2014$trust_local_z <- Recode(cbs2014$E1H,"7:9 = NA") 
+cbs2014$trust_local_z <- scales::rescale(as.numeric(cbs2014$trust_local_z),to = c(0,1)) 
+cbs2014$trust_localR <- Recode(cbs2014$E1H,"4:6 = 1; 1:3 = 0; 7:9 = NA")
+
+cbs2014$trust_court <- cbs2014$E1A
+cbs2014$trust_court_z <- Recode(cbs2014$E1A,"7:9 = NA") 
+cbs2014$trust_court_z <- scales::rescale(as.numeric(cbs2014$trust_court_z),to = c(0,1)) 
+cbs2014$trust_courtR <- Recode(cbs2014$E1A,"4:6 = 1; 1:3 = 0; 7:9 = NA")
+
+# dem
+cbs2014$demsatisify <- 5 - cbs2014$C19
+cbs2014$demsatisify[cbs2014$demsatisify < 0] <- NA
+cbs2014$demsuit <- Recode(cbs2014$F1,"98:99 = NA")
+cbs2014$demlevel <- cbs2014$F7A
+cbs2014$demlevel_usa <- cbs2014$F7B
+cbs2014$leader <- 5 - cbs2014$F22A
+cbs2014$leader[cbs2014$leader < 0] <- NA
+cbs2014$party <- 5 - cbs2014$F22B
+cbs2014$party[cbs2014$party < 0] <- NA
+cbs2014$army <- 5 - cbs2014$F22C
+cbs2014$army[cbs2014$army < 0] <- NA
+cbs2014$expert <- 5 - cbs2014$F22D
+cbs2014$expert[cbs2014$expert < 0] <- NA
+# write.csv(cbs2014,file = "../dataclean/cbs2014.csv")
+```
+
+## cbs2019
+
+```{r cbs2019}
+#| label: cbs2019
+#| eval: false
+#| echo: false
+
+cbs2019_raw <- haven::read_sav("../data/cbs/cbs2019.sav") %>%
+  mutate(year = 2019,
+         wave = 1)
+cbs2019_raw[cbs2019_raw < 0] <- NA
+cbs2019 <- cbs2019_raw %>%
+  dplyr::select(.,"个案编号",SITEPRO,year,wave,A1,A2,A4A,A5,B1,B9,B19,SE1,SE1A,SE11,SE13,SE22,SE5,E4A,E4B,E4C,E4H,F1,F7A,F7B,F9,F10,F11,F12,F24A,F24B,F24C,F24D) %>%
+  dplyr::rename(province = SITEPRO,
+                id = "个案编号")
+
+cbs2019$province[cbs2019$province == "上海"] <- "上海市"
+cbs2019$province[cbs2019$province == "北京"] <- "北京市"
+cbs2019$province[cbs2019$province == "北京"] <- "北京市"
+cbs2019$province[cbs2019$province == "重庆"] <- "重庆市"
+cbs2019$province[cbs2019$province == "云南"] <- "云南省"
+cbs2019$province[cbs2019$province == "吉林"] <- "吉林省"
+cbs2019$province[cbs2019$province == "四川"] <- "四川省"
+cbs2019$province[cbs2019$province == "安徽"] <- "安徽省"
+cbs2019$province[cbs2019$province == "山东"] <- "山东省"
+cbs2019$province[cbs2019$province == "江苏"] <- "江苏省"
+cbs2019$province[cbs2019$province == "广西"] <- "广西壮族自治区"
+cbs2019$province[cbs2019$province == "广东"] <- "广东省"
+cbs2019$province[cbs2019$province == "江西"] <- "江西省"
+cbs2019$province[cbs2019$province == "河南"] <- "河南省"
+cbs2019$province[cbs2019$province == "浙江"] <- "浙江省"
+cbs2019$province[cbs2019$province == "湖南"] <- "湖南省"
+cbs2019$province[cbs2019$province == "甘肃"] <- "甘肃省"
+cbs2019$province[cbs2019$province == "贵州"] <- "贵州省"
+cbs2019$province[cbs2019$province == "福建"] <- "福建省"
+cbs2019$province[cbs2019$province == "黑龙江"] <- "黑龙江省"
+
+
+cbs2019$female <- cbs2019$A1 - 1
+cbs2019$age <- cbs2019$A4A
+cbs2019$marriage <- Recode(cbs2019$SE22,"c(1,3,4,5,6) = 0; 2 = 1")
+cbs2019$socialLevel <- cbs2019$SE11
+cbs2019$hukouRural <- Recode(cbs2019$A2,"c(2,3) = 0; c(1,4) = 1; c(5,9) = NA")
+cbs2019$race <- Recode(cbs2019$A5,"2 = 0")
+cbs2019$edu <- Recode(cbs2019$SE1, "0:3 = 1; 4:5 = 2; 6:8 = 3; 9 = 3; 10 = 5")
+cbs2019$party <- Recode(cbs2019$SE13,"3:4 = 1; 1:2 = 0")
+cbs2019$interstpol <- cbs2019$B9
+cbs2019$ecolevel <- 6 - cbs2019$B18
+
+
+# politicaltrust
+cbs2019$trust_party <- cbs2019$E4C
+cbs2019$trust_party_z <- scales::rescale(as.numeric(cbs2019$E4C),to = c(0,1))
+cbs2019$trust_party_max <- Recode(cbs2019$trust_party,"1:5 = 0; 6 = 1")
+bs2019$trust_patryR <- Recode(cbs2019$E4C,"1:3 = 0; 4:6 = 1")
+
+cbs2019$trust_gover <- cbs2019$E4B
+cbs2019$trust_gover_z <- scales::rescale(as.numeric(cbs2019$E4B),to = c(0,1)) 
+cbs2019$trust_goverR <- Recode(cbs2019$E4B,"4:6 = 1; 1:3 = 0")
+cbs2019$trust_gover_max <- Recode(cbs2019$E4B,"6 = 1; 1:5 = 0")
+
+cbs2019$trust_local <- cbs2019$E4H
+cbs2019$trust_local_z <- scales::rescale(as.numeric(cbs2019$E4H),to = c(0,1))
+cbs2019$trust_localR <- Recode(cbs2019$E4H,"4:6 = 1; 1:3 = 0")
+
+cbs2019$trust_court <- cbs2019$E4A
+cbs2019$trust_court_z <- scales::rescale(as.numeric(cbs2019$E4A),to = c(0,1)) 
+cbs2019$trust_courtR <- Recode(cbs2019$E4A,"4:6 = 1; 1:3 = 0")
+
+# dem
+cbs2019$demsatisify <- 5 - cbs2019$C19
+cbs2019$demsuit <- cbs2019$F1
+cbs2019$demlevel <- cbs2019$F7A
+cbs2019$demlevel_usa <- cbs2019$F7B
+cbs2019$leader <- 5 - cbs2019$F24A
+cbs2019$party <- 5 - cbs2019$F24B
+cbs2019$army <- 5 - cbs2019$F24C
+cbs2019$expert <- 5 - cbs2019$F24D
+# write.csv(cbs2019,file = "../dataclean/cbs2019.csv")
+```
+
+::: {.callout-tip}
+1. 目前对**党的信任**尚未编码，除了2008还是2002年没有对党的信任，其他年份都有。
+:::
+
+
