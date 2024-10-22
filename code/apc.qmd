@@ -4,11 +4,11 @@ format:
   html:
     number-sections: true
 editor: visual
+code-fold: true # 代码折叠
 ---
 # packageLoda
 ```{r Prelode}
 #| label: package
-#| eval: false
 #| echo: false
 set.seed(0930)
 options (warn = -1)
@@ -305,17 +305,15 @@ anova(lm_pro,lm_pro_per)
 # CBS
 ## cbs2002
 
-```{r cbs2002, echo=FALSE}
+```{r cbs2002}
 #| label: cbs2002
-#| eval: false
 #| echo: false
-# no socilalevel
 cbs2002_raw <- read_dta("../data/cbs/cbs2002.dta") %>%
   mutate(year = 2002,
          wave = 1)
 cbs2002_raw[cbs2002_raw < 0] <- NA
 cbs2002 <- cbs2002_raw %>%
-  dplyr::select(.,q1,province_id,year,wave,v2,v4,v14,v23,v24,v82,v83,v84,v111,v110,v109,v101,v123,v73a,v73b,v73c,v73d,i3c,i4,i5a,i5b,i5c,i5d,i8,v49d,v49m,v58t,w)  %>%
+  dplyr::select(.,q1,province_id,year,wave,v2,v4,v14,v23,v24,v82,v83,v84,v111,v110,v109,v101,v123,v73a,v73b,v73c,v73d,i3c,i4,i5a,i5b,i5c,i5d,i8,v49d,v49m,v58t,w,v49g,v49j,v49o,v58j,v74m,v74x)  %>%
   rename(id = q1,
          province = province_id,
          weight = w)
@@ -406,6 +404,16 @@ cbs2002$army <- 5 - cbs2002$i5d
 cbs2002$systembest <- 5 - cbs2002$v49d
 cbs2002$systemsuit <- 5 - cbs2002$v49m
 cbs2002$lifestyle <- 5 - cbs2002$v58t
+
+# authoritarian personality
+cbs2002$v49g <- 5 - cbs2002$v49g
+cbs2002$v49j <- 5 - cbs2002$v49j
+cbs2002$v49o <- 5 - cbs2002$v49o
+cbs2002$v58j <- 5 - cbs2002$v58j
+cbs2002$v74m <- 5 - cbs2002$v74m
+cbs2002$v74x <- 5 - cbs2002$v74x
+
+
 # remove NA
 cbs2002[cbs2002 < 0] <- NA
 
@@ -420,14 +428,13 @@ cbs2002clean <- cbs2002 %>%
 
 ```{r cbs2008}
 #| label: cbs2008
-#| eval: false
 #| echo: false
 cbs2008_raw <- haven::read_dta("../data/cbs/cbs2008.dta") %>%
   mutate(year = 2008,
          wave = 1) 
 cbs2008_raw[cbs2008_raw < 0] <- NA
 cbs2008 <- cbs2008_raw %>%
-  dplyr::select(.,number,PROV,year,wave,a1,b1,b6,c3,c9,j1,j2,j3,j3a,j4,j8,j25,j28,j35,f30a,f30b,f30c,f30d,g1n,g1o,h1c,h1n,h3,h9,h11a,h11d,h12,w) %>%
+  dplyr::select(.,number,PROV,year,wave,a1,b1,b6,c3,c9,j1,j2,j3,j3a,j4,j8,j25,j28,j35,f30a,f30b,f30c,f30d,g1n,g1o,h1c,h1n,h3,h9,h11a,h11d,h12,w,f1g,f1h,g1m,h1f,h1g,d10k) %>%
   rename(id = number,
          province = PROV,
          weight = w)
@@ -519,7 +526,13 @@ cbs2008$proud <- 5 - cbs2008$c3
 cbs2008$lifestyle <- 5 - cbs2008$h1n
 cbs2008$systemsuit <- 5 - cbs2008$h1c
 
-
+## authoritarian personality
+cbs2008$f1g <- 5 - cbs2008$f1g
+cbs2008$f1h <- 5 - cbs2008$f1h
+cbs2008$g1m <- 5 - cbs2008$g1m
+cbs2008$h1f <- 5 - cbs2008$h1f
+cbs2008$h1g <- 5 - cbs2008$h1g
+cbs2008$d10k <- 5 - cbs2008$d10k
 # remove NA
 cbs2008[cbs2008 < 0] <- NA
 cbs2008clean <- cbs2008 %>%
@@ -532,7 +545,6 @@ cbs2008clean <- cbs2008 %>%
 
 ```{r cbs2011}
 #| label: cbs2011
-#| eval: false
 #| echo: false
 cbs2011_raw <- haven::read_dta("../data/cbs/cbs2011.dta") %>%
   mutate(year = 2011,
@@ -542,7 +554,7 @@ cbs2011_raw <- haven::read_dta("../data/cbs/cbs2011.dta") %>%
          weight = wCN)
 cbs2011_raw[cbs2011_raw < 0] <- NA
 cbs2011 <- cbs2011_raw %>%
-  select(.,id,province,year,wave,A1,A2,A8,A15,B1,B11a,B11b,B13,C17a,C17h,C17b,C17c,F12,F13,F14,F15,F16,F17,F18,F19,SE1,SE2,SE3,SE4,SE21,SE22,SE29,F7,F8,F9,F10,G1,G2,G6,weight)
+  select(.,id,province,year,wave,A1,A2,A8,A15,B1,B11a,B11b,B13,C17a,C17h,C17b,C17c,F12,F13,F14,F15,F16,F17,F18,F19,SE1,SE2,SE3,SE4,SE21,SE22,SE29,F7,F8,F9,F10,G1,G2,G6,weight,C11,E3,E4,E5,E9)
 cbs2011$province <- as.character(cbs2011$province) %>%
   dplyr::recode(
          "1" = "上海市",
@@ -633,6 +645,14 @@ cbs2011$demscore <- cbs2011 %>%
 cbs2011$proud <- 5 - cbs2011$G1
 cbs2011$lifestyle <- 5 - cbs2011$G6
 
+## authority
+cbs2011$C11 <- 5 - cbs2011$C11
+cbs2011$E3 <- 5 - cbs2011$E3
+cbs2011$E4 <- 5 - cbs2011$E4
+cbs2011$E5 <- 5 - cbs2011$E5
+cbs2011$E9 <- 5 - cbs2011$E9
+
+
 # remove NA
 cbs2011[cbs2011 < 0] <- NA
 
@@ -645,7 +665,6 @@ cbs2011clean <- cbs2011 %>%
 
 ```{r cbs2014}
 #| label: cbs2014
-#| eval: false
 #| echo: false
 
 cbs2014_raw <- haven::read_sav("../data/cbs/cbs2014.sav") %>%
@@ -654,7 +673,7 @@ cbs2014_raw <- haven::read_sav("../data/cbs/cbs2014.sav") %>%
 
 cbs2014_raw[cbs2014_raw < 0] <- NA
 cbs2014 <- cbs2014_raw %>%
-  select(.,CASEID,Proid,A1,A2,A3A,A4,B1,B11,B18,B19,C19,F1,F7A,F7B,F9,F10,F11,F12,F22A,F22B,F22C,F22D,SE1,SE1A,SE9,SE17,SE8,SE4,SE3,SE2,E1A,E1B,E1H,year,wave,F20A,F20B,F20C,F20D,H1A,H1B,H1C,H2,H3,H5,postweight) %>%
+  select(.,CASEID,Proid,A1,A2,A3A,A4,B1,B11,B18,B19,C19,F1,F7A,F7B,F9,F10,F11,F12,F22A,F22B,F22C,F22D,SE1,SE1A,SE9,SE17,SE8,SE4,SE3,SE2,E1A,E1B,E1H,year,wave,F20A,F20B,F20C,F20D,H1A,H1B,H1C,H2,H3,H5,postweight,F19A,F19C,F19D,F19E,F19I,F19K,F19H) %>%
   rename(id = CASEID,
          province = Proid,
          weight = postweight)
@@ -748,6 +767,14 @@ cbs2014$demscore <- cbs2014 %>%
 cbs2014$proud <- 5 - cbs2014$H2
 cbs2014$lifestyle <- 5 - cbs2014$H5
 
+## authority
+cbs2014$F19A <- 5 - cbs2014$F19A
+cbs2014$F19C <- 5 - cbs2014$F19C
+cbs2014$F19D <- 5 - cbs2014$F19D
+cbs2014$F19E <- 5 - cbs2014$F19E
+cbs2014$F19I <- 5 - cbs2014$F19I
+
+
 # remove NA
 cbs2014[cbs2014 < 0] <- NA
 
@@ -760,7 +787,6 @@ cbs2014clean <- cbs2014 %>%
 
 ```{r cbs2019}
 #| label: cbs2019
-#| eval: false
 #| echo: false
 cbs2019_raw <- haven::read_sav("../data/cbs/cbs2019.sav") %>%
   mutate(year = 2019,
@@ -769,7 +795,7 @@ cbs2019_raw <- haven::read_sav("../data/cbs/cbs2019.sav") %>%
 # cbs2019_raw[cbs2019_raw < 0] <- NA
 
 cbs2019 <- cbs2019_raw %>%
-  dplyr::select(.,"个案编号",SITEPRO,year,wave,A1,A2,A4A,A5,B1,B9,B18,B19,SE1,SE1A,SE11,SE13,SE22,SE5,E4A,E4B,E4C,E4H,F1,F7A,F7B,F9,F10,F11,F12,F24A,F24B,F24C,F24D,F21A,F21B,F21C,F21D,H1A,H1B,H1C,H2,H3,H5,C19,weight_cn) %>%
+  dplyr::select(.,"个案编号",SITEPRO,year,wave,A1,A2,A4A,A5,B1,B9,B18,B19,SE1,SE1A,SE11,SE13,SE22,SE5,E4A,E4B,E4C,E4H,F1,F7A,F7B,F9,F10,F11,F12,F24A,F24B,F24C,F24D,F21A,F21B,F21C,F21D,H1A,H1B,H1C,H2,H3,H5,C19,weight_cn,F20A,F20C,F20D,F20E,F20I,F20K,F20H) %>%
   dplyr::rename(province = SITEPRO,
                 id = "个案编号",
                 weight = weight_cn)
@@ -851,6 +877,14 @@ cbs2019$demscore <- cbs2019 %>%
 cbs2019$proud <- 5 - cbs2019$H2
 cbs2019$lifestyle  <- Recode(cbs2019$H5,"2 = 0")
 
+
+# authority
+cbs2019$F20A <- 5 - cbs2019$F20A
+cbs2019$F20C <- 5 - cbs2019$F20C
+cbs2019$F20D <- 5 - cbs2019$F20D
+cbs2019$F20E <- 5 - cbs2019$F20E
+cbs2019$F20I <- 5 - cbs2019$F20I
+
 # remove NA
 # cbs2019[cbs2019 < 0] <- NA
 
@@ -866,13 +900,12 @@ cbs <- cbs2019clean %>%
   bind_rows(.,cbs2014clean) %>%
   bind_rows(.,cbs2011clean) %>%
   bind_rows(.,cbs2008clean) %>%
-  bind_rows(.,cbs2002clean) %>%
-  select(., -X)
+  bind_rows(.,cbs2002clean) 
 
 cbs$yearbirth <- cbs$year - cbs$age
 cbs$demscorer <- ifelse(cbs$demscore > mean(cbs$demscore,na.rm = TRUE),1,0)
 cbs$demdiff <- cbs$demlevel - cbs$demlevel_usa
-
+cbs$year <- as.factor(cbs$year)
 
 t2_cbs <- modelsummary::datasummary(
   (Marriage = marriage)  + 
@@ -924,11 +957,33 @@ cbs <- cbs %>%
       yearbirth %in% c(1981:2001) ~ 5,
     )
   )
-
-cbs$year <- as.factor(cbs$year)
-cbs$cohort <- as.factor(cbs$cohort)
-
 # write.csv(cbs,file = "../data/cbs.csv")
+
+ls_ctrl <- c(
+  "age" = "Age",
+  "female" = "Gender",
+  "party" = "Party",
+  "edu" = "Education",
+  "interstpol" = "Poltical Interst",
+  "frepol" = "Poltical Frequency",
+  "socialLevel" = "SocialLevel",
+  "hukouRural" = "Urban",
+  "marriage" = "Marriage",
+  `as.factor(cohort)2` = "Cohort2",
+  `as.factor(cohort)3` = "Cohort3",
+  `as.factor(cohort)4` = "Cohort4",
+  `as.factor(cohort)5` = "Cohort5",
+  `as.factor(cohort)6` = "Cohort6",
+  `as.factor(cohort)7` = "Cohort7",
+  `as.factor(cohort)8` = "Cohort8",
+  `as.factor(cohort)9` = "Cohort9",
+  `as.factor(cohort)10` = "Cohort10",
+  year2002 = "2002",
+  year2011 = "2011",
+  year2014 = "2014",
+  year2008 = "2008",
+  year2019 = "2019"
+)
 ```
 
 ::: {.callout-tip}
@@ -944,17 +999,19 @@ cbs$cohort <- as.factor(cbs$cohort)
 ```{r}
 #| label: concept
 ## cohort
-glm_concept <- stan_glmer(as.factor(demscorer) ~ age + female + party + edu + interstpol + frepol + socialLevel + hukouRural + marriage  + (1|cohort) + (1|year),data = cbs,family = binomial)
+# glm_concept <- stan_glmer(as.factor(demscorer) ~ age + female + party + edu + interstpol + frepol + socialLevel + hukouRural + marriage  + (1|cohort) + (1|year),data = cbs,family = binomial)
 lm_concept <- lmerTest::lmer(demscore ~ age + female + party + edu + interstpol + frepol + socialLevel + hukouRural + marriage  + (1|cohort) + (1|year),data = cbs,weights = weight)
 lm_demlevel <- update(lm_concept,demlevel ~.)
 lm_demsatisify <- update(lm_concept,demsatisify ~.)
+lm_diffa2c <- update(lm_concept,demdiff ~.)
 
 mlist_dem_cohort <- list(
   lm_demsatisify,
   lm_demlevel,
-  lm_concept
+  lm_concept,
+  lm_diffa2c
 )
-msummary(mlist_dem_cohort,
+rdem <- msummary(mlist_dem_cohort,
          #output = "kableExtra",
          stars = TRUE,
          # coef_rename = ls_ctrl,
@@ -991,7 +1048,7 @@ names(u0_cohort_demlevel$cohort) <- "est_demlevel"
 
 period_eff_cohort_demlevel <- data.frame(est_demlevel = u0_cohort_demlevel$year, 
                          se = sqrt(attr(u0_cohort_demlevel[[2]], "postVar")[1, ,]),
-                         period = c(2008,2011, 2014, 2019))
+                         period = c(2002,2008,2011, 2014, 2019))
 
 cohort_eff_cohort_demlevel <- data.frame(est_demlevel = u0_cohort_demlevel$cohort, 
                          se = sqrt(attr(u0_cohort_demlevel[[1]], "postVar")[1, ,]),
@@ -1014,7 +1071,7 @@ names(u0_cohort_demsatisify$cohort) <- "est_demsatisify"
 
 period_eff_cohort_demsatisify <- data.frame(est_demsatisify = u0_cohort_demsatisify$year, 
                          se = sqrt(attr(u0_cohort_demsatisify[[2]], "postVar")[1, ,]),
-                         period = c(2008,2011, 2014, 2019))
+                         period = c(2002,2008,2011, 2014, 2019))
 
 cohort_eff_cohort_demsatisify <- data.frame(est_demsatisify = u0_cohort_demsatisify$cohort, 
                          se = sqrt(attr(u0_cohort_demsatisify[[1]], "postVar")[1, ,]),
@@ -1066,6 +1123,7 @@ plot_cohort_cohort_concpet <- ggplot(cohort_eff_cohort_concept, aes(x = cohort, 
   geom_point() + 
   geom_errorbar(aes(ymin = lower, ymax = upper), width = .2) + 
   scale_y_continuous(limits = c(-.1, .1)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
   xlab("Cohort") + 
   ylab("The cohort effect of Concept")
 # plot_cohort_cohort_concpet
@@ -1074,6 +1132,7 @@ plot_cohort_cohort_demlevel <- ggplot(cohort_eff_cohort_demlevel, aes(x = cohort
   geom_point() + 
   geom_errorbar(aes(ymin = lower, ymax = upper), width = .2) + 
   scale_y_continuous(limits = c(-1,1)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
   xlab("Cohort") + 
   ylab("The cohort effect of Demlevel")
 # plot_cohort_cohort_demlevel
@@ -1082,6 +1141,7 @@ plot_cohort_cohort_demsatisify <- ggplot(cohort_eff_cohort_demsatisify, aes(x = 
   geom_point() + 
   geom_errorbar(aes(ymin = lower, ymax = upper), width = .2) + 
   scale_y_continuous(limits = c(-1,1)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
   xlab("Cohort") + 
   ylab("The cohort effect of Demsatisify")
 # plot_cohort_cohort_demsatisify
@@ -1103,13 +1163,14 @@ plot_period_cohort_effect
 # ggsave(plot_period_cohrot_concept,file = "../fig/period_cohort_concept.pdf")
 # ggsave(plot_cohort_cohort_concpet,file = "../fig/cohort_cohort_concept.pdf")
 ```
-:::{.callout-imp}
+::: {.callout-imp}
 1. 民主观念有世代差异:
  - 后三个时期与0无异。
 1. 民主水平有世代差异
 1. 时期也有差异：
  - 民主水平：2008与0无异; 2011/2014<0; 2019>0
  - 民主满意度:都与0无差异
+ 
 :::
 
 
@@ -1150,7 +1211,7 @@ names(u0_cohort10_demlevel$cohort10) <- "est_demlevel"
 
 period_eff_cohort10_demlevel <- data.frame(est_demlevel = u0_cohort10_demlevel$year, 
                          se = sqrt(attr(u0_cohort10_demlevel[[2]], "postVar")[1, ,]),
-                         period = c(2008,2011, 2014, 2019))
+                         period = c(2002,2008,2011, 2014, 2019))
 
 cohort_eff_cohort10_demlevel <- data.frame(est_demlevel = u0_cohort10_demlevel$cohort10, 
                          se = sqrt(attr(u0_cohort10_demlevel[[1]], "postVar")[1, ,]),
@@ -1173,7 +1234,7 @@ names(u0_cohort10_demsatisify$cohort10) <- "est_demsatisify"
 
 period_eff_cohort10_demsatisify <- data.frame(est_demsatisify = u0_cohort10_demsatisify$year, 
                          se = sqrt(attr(u0_cohort10_demsatisify[[2]], "postVar")[1, ,]),
-                         period = c(2008,2011, 2014, 2019))
+                         period = c(2002,2008,2011, 2014, 2019))
 
 cohort_eff_cohort10_demsatisify <- data.frame(est_demsatisify = u0_cohort10_demsatisify$cohort10, 
                          se = sqrt(attr(u0_cohort10_demsatisify[[1]], "postVar")[1, ,]),
@@ -1226,6 +1287,7 @@ plot_cohort_cohort10_concpet <- ggplot(cohort_eff_cohort10_concept, aes(x = coho
   geom_point() + 
   geom_errorbar(aes(ymin = lower, ymax = upper), width = .2) + 
   scale_y_continuous(limits = c(-.1, .1)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
   xlab("cohort10") + 
   ylab("The cohort10 effect of Concept")
 # plot_cohort10_cohort10_concpet
@@ -1234,6 +1296,7 @@ plot_cohort_cohort10_demlevel <- ggplot(cohort_eff_cohort10_demlevel, aes(x = co
   geom_point() + 
   geom_errorbar(aes(ymin = lower, ymax = upper), width = .2) + 
   scale_y_continuous(limits = c(-1,1)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
   xlab("cohort10") + 
   ylab("The cohort10 effect of Demlevel")
 # plot_cohort10_cohort10_demlevel
@@ -1242,6 +1305,7 @@ plot_cohort_cohort10_demsatisify <- ggplot(cohort_eff_cohort10_demsatisify, aes(
   geom_point() + 
   geom_errorbar(aes(ymin = lower, ymax = upper), width = .2) + 
   scale_y_continuous(limits = c(-1,1)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
   xlab("cohort10") + 
   ylab("The cohort10 effect of Demsatisify")
 # plot_cohort10_cohort10_demsatisify
@@ -1266,7 +1330,7 @@ plot_period_cohort10_effect
 
 #### cohort5
 ```{r}
-#| label: cohort_effect_concpt10
+#| label: cohort_effect_concpt5
 lm_concept5 <- lmerTest::lmer(demscore ~ age + female + party + edu + interstpol + frepol + socialLevel + hukouRural + marriage  + (1|cohort5) + (1|year),data = cbs,weights = weight)
 lm_demlevel5 <- update(lm_concept5,demlevel ~.)
 lm_demsatisify5 <- update(lm_concept5,demsatisify ~.)
@@ -1306,7 +1370,7 @@ names(u0_cohort5_demlevel$cohort5) <- "est_demlevel"
 
 period_eff_cohort5_demlevel <- data.frame(est_demlevel = u0_cohort5_demlevel$year, 
                          se = sqrt(attr(u0_cohort5_demlevel[[2]], "postVar")[1, ,]),
-                         period = c(2008,2011, 2014, 2019))
+                         period = c(2002,2008,2011, 2014, 2019))
 
 cohort_eff_cohort5_demlevel <- data.frame(est_demlevel = u0_cohort5_demlevel$cohort5, 
                          se = sqrt(attr(u0_cohort5_demlevel[[1]], "postVar")[1, ,]),
@@ -1334,7 +1398,7 @@ names(u0_cohort5_demsatisify$cohort5) <- "est_demsatisify"
 
 period_eff_cohort5_demsatisify <- data.frame(est_demsatisify = u0_cohort5_demsatisify$year, 
                          se = sqrt(attr(u0_cohort5_demsatisify[[2]], "postVar")[1, ,]),
-                         period = c(2008,2011, 2014, 2019))
+                         period = c(2002,2008,2011, 2014, 2019))
 
 cohort_eff_cohort5_demsatisify <- data.frame(est_demsatisify = u0_cohort5_demsatisify$cohort5, 
                          se = sqrt(attr(u0_cohort5_demsatisify[[1]], "postVar")[1, ,]),
@@ -1583,47 +1647,19 @@ plot_cohort_leader10
 ## FE Analysis
 ### cohort
 ```{r}
-#| label: FE for dem
-
 ## cohort
-cbs$year <- as.factor(cbs$year)
-cbs$year <- relevel(cbs$year,ref = "2002")
 gfm_concept <- glm(as.factor(demscorer) ~ age + female + party + edu + interstpol + frepol + socialLevel + hukouRural + marriage  + as.factor(cohort) + year,data = cbs,family = binomial)
 fm_concept <- lm(demscore ~ age + female + party + edu + interstpol + frepol + socialLevel + hukouRural + marriage  + as.factor(cohort) + year,data = cbs,weights = weight)
 fm_demlevel <- update(fm_concept,demlevel ~.)
 fm_demsatisify <- update(fm_concept,demsatisify ~.)
+fm_diffa2c <- update(fm_concept, demdiff ~ .)
 
-
-ls_ctrl <- c(
-  "age" = "Age",
-  "female" = "Gender",
-  "party" = "Party",
-  "edu" = "Education",
-  "interstpol" = "Poltical Interst",
-  "frepol" = "Poltical Frequency",
-  "socialLevel" = "SocialLevel",
-  "hukouRural" = "Urban",
-  "marriage" = "Marriage",
-  `as.factor(cohort)2` = "Cohort2",
-  `as.factor(cohort)3` = "Cohort3",
-  `as.factor(cohort)4` = "Cohort4",
-  `as.factor(cohort)5` = "Cohort5",
-  `as.factor(cohort)6` = "Cohort6",
-  `as.factor(cohort)7` = "Cohort7",
-  `as.factor(cohort)8` = "Cohort8",
-  `as.factor(cohort)9` = "Cohort9",
-  `as.factor(cohort)10` = "Cohort10",
-  year2002 = "2002",
-  year2011 = "2011",
-  year2014 = "2014",
-  year2008 = "2008",
-  year2019 = "2019"
-)
 
 flist <- list(
-  fm_concept,
-  fm_demlevel,
-  fm_demsatisify
+  Demconcep = fm_concept,
+  Demlevel = fm_demlevel,
+  Demsatisify = fm_demsatisify,
+  Diffa2c = fm_diffa2c
 )
 t2_fdem <- msummary(flist,
          stars = TRUE,
@@ -1633,10 +1669,30 @@ t2_fdem <- msummary(flist,
 t2_fdem
 ```
 
+
+## plot
+```{r}
+fm1_concept <- broom::tidy(fm_concept) %>%
+  filter(grepl("^(as.factor)",term)) %>%
+  rename(est = estimate,
+         se = std.error,
+         cohort = term) %>%
+  mutate(upper = est + 1.96*se,
+         lower = est - 1.96*se)
+fm1_concept$cohort <- gsub("^(as.factor)", "",fm1_concept$cohort)
+
+p1 <- ggplot(fm1_concept, aes(x = cohort, y = est)) +
+  geom_point() + 
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = .15) + 
+  scale_y_continuous(limits = c(-1,1)) +
+  xlab("Year") + 
+  ylab("The period effect of Demsatisify")
+
+```
+
+
 ### cohort5
 ```{r}
-#| label: FE for dem
-
 ## cohort
 gfm_concept5 <- glm(as.factor(demscorer) ~ age + female + party + edu + interstpol + frepol + socialLevel + hukouRural + marriage  + as.factor(cohort5) + year,data = cbs,family = binomial)
 fm_concept5 <- lm(demscore ~ age + female + party + edu + interstpol + frepol + socialLevel + hukouRural + marriage  + as.factor(cohort5) + year,data = cbs,weights = weight)
@@ -1703,6 +1759,11 @@ t3_fleader
 ```
 
 
-### autho
+## authority Orientations
+```{r}
+#| label: authority
+
+```
+
 
 
