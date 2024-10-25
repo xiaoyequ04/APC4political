@@ -478,6 +478,14 @@ cbs2002$ecofamily <- 6 - cbs2002$v20
 cbs2002$ecofamily5 <- 6 - cbs2002$v21
 
 
+# cbs2002 <- cbs2002 %>%
+#   mutate(source = case_when(
+#     v11a == 1 | v11b == 1 |
+#       v11c == 1 | v11d == 1 |
+#       v11f == 1 ~ "0",
+#     v11e == 1 | v11g == 1 ~ "1"
+# ))
+# cbs2002$source[cbs2002$source = 9] <- NA
 # political trust
 cbs2002$trust_party <- cbs2002$v73d
 cbs2002$trust_party_z <- Recode(cbs2002$v73d,"c(0,8,9) = NA") 
@@ -550,7 +558,7 @@ cbs2002$autho <- cbs2002 %>%
   rowMeans(na.rm = TRUE)
 
 cbs2002clean <- cbs2002 %>%
-  select(.,id,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demsuit,demsatisify,leader,expert,army,compete,lifestyle,systembest,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho7,autho8,autho9,source,ecofamily5,ecofamily,ecocountry5,ecocountry)
+  select(.,id,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demsuit,demsatisify,leader,expert,army,compete,lifestyle,systembest,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho7,autho8,autho9,ecofamily5,ecofamily,ecocountry5,ecocountry)
 
 # write.csv(cbs2002,file = "../dataclean/cbs2002.csv")
 ```
@@ -615,21 +623,21 @@ cbs2008$edu <- Recode(cbs2008$j3, "0:1 = 1; 2:3 = 2; 4:6 = 3; 7 = 4; 8 = 5; 9 = 
 cbs2008$interstpol <- 5 - cbs2008$b6
 cbs2008$frepol <- 6 - cbs2008$b1
 cbs2008$socialLevel <- Recode(cbs2008$j25,"98:99 = NA")
-cbs2008$ecocounrty <- 6 - cbs2008$c6
-cbs2008$ecocounrty5 <- 6 - cbs2008$c7
+cbs2008$ecocountry <- 6 - cbs2008$c6
+cbs2008$ecocountry5 <- 6 - cbs2008$c7
 cbs2008$ecofamily <- 6 - cbs2008$c9
 cbs2008$ecofamily5 <- 6 - cbs2008$c10
 
 
 
-cbs2008$source <- dplyr::case_when(
-  cbs2008$b2a == 1 ~ "0",
-  cbs2008$b2b == 1 ~ "0",
-  cbs2008$b2c == 1 ~ "0",
-  cbs2008$b2d == 1 ~ "1",
-  cbs2008$b2e == 1 ~ "1",
-  cbs2008$b2f == 1 ~ "1",
-  cbs2008$b2g == 1 ~ "1")
+# cbs2008$source <- dplyr::case_when(
+#   cbs2008$b2a == 1 ~ "0",
+#   cbs2008$b2b == 1 ~ "0",
+#   cbs2008$b2c == 1 ~ "0",
+#   cbs2008$b2d == 1 ~ "1",
+#   cbs2008$b2e == 1 ~ "1",
+#   cbs2008$b2f == 1 ~ "1",
+#   cbs2008$b2g == 1 ~ "1")
 
 # political trust
 cbs2008$trust_party <- cbs2008$f30d
@@ -703,7 +711,7 @@ cbs2008$autho <- cbs2008 %>%
   rowMeans(na.rm = TRUE)
 
 cbs2008clean <- cbs2008 %>%
-  select(.,id,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demlevel_usa,demsuit,demsatisify,leader,army,lifestyle,proud,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho7,autho8,autho9,source,ecofamily5,ecofamily,ecocounrty,ecocountry5)
+  select(.,id,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demlevel_usa,demsuit,demsatisify,leader,army,lifestyle,proud,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho7,autho8,autho9,ecofamily5,ecofamily,ecocountry,ecocountry5)
 # write.csv(cbs2008,file = "../dataclean/cbs2008.csv")
 ```
 
@@ -767,16 +775,16 @@ cbs2011$ecocountry5 <- 6 - cbs2011$A13
 cbs2011$ecofamily <- 6 - cbs2011$A15
 cbs2011$ecofamily5 <- 6 - cbs2011$A16
 
-cbs2011$source <- case_when(
-  cbs2011$A4a = 1 ~ "0",
-  cbs2011$A4b = 1 ~ "0",
-  cbs2011$A4c = 1 ~ "0",
-  cbs2011$A4d = 1 ~ "1",
-  cbs2011$A4e = 1 ~ "1",
-  cbs2011$A4f = 1 ~ "1",
-  cbs2011$A4g = 1 ~ "1"
-)
-cbs2011$source[cbs2011$source %in% c(7,9)] <- NA
+# cbs2011$source <- case_when(
+#   cbs2011$A4a = 1 ~ "0",
+#   cbs2011$A4b = 1 ~ "0",
+#   cbs2011$A4c = 1 ~ "0",
+#   cbs2011$A4d = 1 ~ "1",
+#   cbs2011$A4e = 1 ~ "1",
+#   cbs2011$A4f = 1 ~ "1",
+#   cbs2011$A4g = 1 ~ "1"
+# )
+# cbs2011$source[cbs2011$source %in% c(7,9)] <- NA
 
 # politicaltrust
 cbs2011$trust_party <- cbs2011$C17c
@@ -857,7 +865,7 @@ cbs2011$autho <- cbs2011 %>%
   rowMeans(na.rm = TRUE)
 
 cbs2011clean <- cbs2011 %>%
-  select(.,id,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demlevel_usa,demsuit,demsatisify,leader,expert,army,compete,lifestyle,proud,demscore,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho7,autho8,autho9,source,ecofamily5,ecofamily,ecocounrty,ecocountry5)
+  select(.,id,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demlevel_usa,demsuit,demsatisify,leader,expert,army,compete,lifestyle,proud,demscore,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho7,autho8,autho9,ecofamily5,ecofamily,ecocountry,ecocountry5)
 
 ```
 
@@ -923,12 +931,12 @@ cbs2014$socialLevel <- Recode(cbs2014$SE8,"98:99 = NA")
 cbs2014$interstpol <- Recode(cbs2014$B11,"9 = NA")
 cbs2014$B1 <- Recode(cbs2014$B1,"6 = 5; 9 = NA")
 cbs2014$frepol <- 6 - cbs2014$B1
-cbs2014$ecocoutry <- 6 - cbs2014$B15
-cbs2014$ecocoutry5 <- 6 - cbs2014$B16
+cbs2014$ecocountry <- 6 - cbs2014$B15
+cbs2014$ecocountry5 <- 6 - cbs2014$B16
 cbs2014$ecofamily <- 6 - cbs2014$B18
 cbs2014$ecofamily5 <- 6 - cbs2014$B19
 
-cbs2014$source <- Recode(cbs2014$B8,"c(1,3,4) = 0; c(2,5,6,7,8) = 1; 98:99 = NA")
+# cbs2014$source <- Recode(cbs2014$B8,"c(1,3,4) = 0; c(2,5,6,7,8) = 1; 98:99 = NA")
 
 # politicaltrust
 cbs2014$trust_gover <- cbs2014$E1B
@@ -1000,7 +1008,7 @@ cbs2014$autho <- cbs2014 %>%
   rowMeans(na.rm = TRUE)
 
 cbs2014clean <- cbs2014 %>%
-  select(.,id,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demlevel_usa,demsuit,demsatisify,leader,expert,army,party,lifestyle,proud,demscore,autho,autho2,autho3,autho4,autho5,autho6,autho8,autho9,source,ecofamily5,ecofamily,ecocounrty,ecocountry5)
+  select(.,id,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demlevel_usa,demsuit,demsatisify,leader,expert,army,party,lifestyle,proud,demscore,autho,autho2,autho3,autho4,autho5,autho6,autho8,autho9,ecofamily5,ecofamily,ecocountry,ecocountry5)
 # write.csv(cbs2014,file = "../dataclean/cbs2014.csv")
 ```
 
@@ -1056,8 +1064,8 @@ cbs2019$B1 <- Recode(cbs2019$B1,"6 = 5")
 cbs2019$frepol <- 6 - cbs2019$B1
 cbs2019$ecofamily <- 6 - cbs2019$B18
 cbs2019$ecofamily5 <- 6 - cbs2019$B19
-cbs2019$ecocounrty <- 6 - cbs2019$B15
-cbs2019$ecocounrty5 <- 6 - cbs2019$B16
+cbs2019$ecocountry <- 6 - cbs2019$B15
+cbs2019$ecocountry5 <- 6 - cbs2019$B16
 cbs2019$inertnet <- Recode(cbs2019$B5,"c(1,3,4) = 0;c(2,5,6,7,8,9) = 1")
 
 
@@ -1132,7 +1140,7 @@ cbs2019$autho <- cbs2019 %>%
   rowMeans(na.rm = TRUE)
   
 cbs2019clean <- cbs2019 %>%
-  select(.,id,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demlevel_usa,demsuit,demsatisify,leader,expert,army,party,lifestyle,proud,demscore,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho8,autho9,source,ecofamily5,ecofamily,ecocounrty,ecocountry5)
+  select(.,id,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demlevel_usa,demsuit,demsatisify,leader,expert,army,party,lifestyle,proud,demscore,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho8,autho9,ecofamily5,ecofamily,ecocountry,ecocountry5)
 ```
 
 
@@ -1181,6 +1189,11 @@ cbs <- cbs %>%
       yearbirth %in% c(1981:2001) ~ 5,
     )
   )
+cbs$ecocountry <- scales::rescale(cbs$ecocountry,to = c(0,1))
+cbs$ecocountry5 <- scales::rescale(cbs$ecocountry5,to = c(0,1))
+cbs$ecofamily <- scales::rescale(cbs$ecofamily,to = c(0,1))
+cbs$ecofamily5 <- scales::rescale(cbs$ecofamily5,to = c(0,1))
+
  # write.csv(cbs,file = "../data/cbs.csv")
 
 
@@ -1197,6 +1210,10 @@ t2_cbs <- modelsummary::datasummary(
   (Demscore = demscore) +
   (Demlevel_china = demlevel) +
   (Demlevel_usa = demlevel_usa) +
+  (Ecocountry5 = ecocountry5) +
+  (Ecocountry = ecocountry) +
+  (Ecofamily5 = ecofamily5) +
+  (Ecofamily = ecofamily) + 
   (Authority = autho) ~
     factor(year) * (Mean + SD + (Number = N)),
   output = "tinytable",
@@ -2299,14 +2316,6 @@ mds <- haven::read_dta("../data/eco/maddison2023.dta") %>%
 mds_su <- haven::read_dta("../data/eco/gdpData.dta") 
 mds_china <- mds %>%
   left_join(.,mds_su)
-temp_gdp <- temp %>%
-  left_join(mds_china,by = join_by(yearbirth == year)) 
-
-temp_gdp <- temp_gdp %>%
-  group_by(cohort) %>%
-  mutate(gdppc_mean = mean(gdppc,na.rm = TRUE),
-         gdp_mean = mean(gdp,na.rm = TRUE),
-         growth_mean = mean(growth,na.rm = TRUE))
   
 rm(mds,mds_su)
 ```
@@ -2344,17 +2353,6 @@ msummary(list_eco2dem,
 ## cbs
 ```{r}
 # cbs <- read_csv("../data/cbs.csv",show_col_types = FALSE)
-temp <- cbs %>%
-  select(.,yearbirth,cohort,autho,leader)
-temp_gdp <- temp %>%
-  left_join(.,mds_china,by = join_by(yearbirth == year)) %>%
-  group_by(cohort) %>%
-  mutate(gdppc_mean = mean(gdppc,na.rm = TRUE),
-         gdp_mean = mean(gdp,na.rm = TRUE),
-         growth_mean = mean(growth,na.rm = TRUE)) %>%
-  ungroup()
-
-
 fulldata_cbs <- cbs %>%
   left_join(.,mds_china,by = join_by(yearbirth == year)) %>%
   group_by(cohort) %>%
@@ -2363,20 +2361,31 @@ fulldata_cbs <- cbs %>%
          growth_mean = mean(growth,na.rm = TRUE)) %>%
   ungroup()
 
-gdppc2autho_mean <- lm(autho ~ log(gdppc_mean) + age + socialLevel +female + edu + hukouRural + interstpol + frepol + marriage + party, data = fulldata_cbs,weights = weight)
+gdppc2autho_mean <- lm(autho ~ log(gdppc_mean)  + socialLevel +female + edu + hukouRural + interstpol + frepol + marriage + party, data = fulldata_cbs,weights = weight)
+ic5_gdppc2autho <- lm(autho ~ log(gdppc_mean) *  ecocountry5 + age + socialLevel +female + edu + hukouRural + interstpol + frepol + marriage + party, data = fulldata_cbs,weights = weight)
+ic_gdppc2autho <- update(ic5_gdppc2autho, . ~ . - log(gdppc_mean) *  ecocountry5 + log(gdppc_mean) *  ecocountry)
+if5_gdppc2autho <- update(ic5_gdppc2autho, . ~ . - log(gdppc_mean) *  ecocountry5 + log(gdppc_mean) *  ecofamily5)
+if_gdppc2autho <- update(ic5_gdppc2autho, . ~ . - log(gdppc_mean) *  ecocountry5 + log(gdppc_mean) *  ecofamily)
+
+
 gdppc2autho <- update(gdppc2autho_mean, . ~ . - log(gdppc_mean) + log(gdppc))
 gdp2autho_mean <- update(gdppc2autho_mean, . ~ . + log(gdp_mean) - log(gdppc_mean))
 gdp2autho <- update(gdp2autho_mean, . ~ . - log(gdp_mean) + log(gdp))
 
-gdppc2leader <- update(gdppc2autho, leader ~ .)
-gdp2leader <- update(gdppc2leader, . ~ + log(gdp_mean) - log(gdppc_mean))
+gdp2ecofamily <- update(gdp2autho,ecofamily ~ .)
+
+# gdppc2leader <- update(gdppc2autho, leader ~ .)
+# gdp2leader <- update(gdppc2leader, . ~ + log(gdp_mean) - log(gdppc_mean))
 
 
 list_eco2author <- list(
   gdppc2autho = gdppc2autho,
   gdppc2autho_mean = gdppc2autho_mean,
-  gdp2autho = gdp2autho,
-  gdp2autho_mean = gdp2autho_mean
+  if5_gdppc2autho = if5_gdppc2autho,
+  ic5_gdppc2autho = ic5_gdppc2autho,
+  if_gdppc2autho = if_gdppc2autho,
+  ic_gdppc2autho = ic_gdppc2autho
+  
 )
 
 msummary(list_eco2author,
