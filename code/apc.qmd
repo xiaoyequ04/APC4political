@@ -7,6 +7,7 @@ editor: visual
 code-fold: true # 代码折叠
 ---
 # packageLoda
+
 ```{r Prelode}
 #| label: package
 #| echo: false
@@ -30,7 +31,21 @@ p_load("rio",
        "psych")
 ```
 
-# wvs
+# ECO
+```{r}
+mds <- haven::read_dta("../data/eco/maddison2023.dta") %>%
+  filter(countrycode == "CHN") %>%
+  filter(year >= "1900") %>%
+  select(.,year,gdppc,pop) %>%
+  filter(.,year != "730")
+mds_su <- haven::read_dta("../data/eco/gdpData.dta") 
+mds_china <- mds %>%
+  left_join(.,mds_su)
+rm(mds,mds_su)
+
+```
+
+# WVS
 ## dataloda
 
 ```{r}
@@ -95,6 +110,16 @@ wvs_china$dempro <- wvs_china %>%
   rowMeans(na.rm = TRUE) 
 wvs_china$demuti <- wvs_china %>%
   select(.,c(E224_na,E227_na)) %>%
+  rowMeans(na.rm = TRUE)
+
+wvs_china$demproz <- scales::rescale(wvs_china$dempro,to = c(0,1))
+wvs_china$demutiz <- scales::rescale(wvs_china$demuti,to = c(0,1))
+
+wvs_china$dempror <- wvs_china %>%
+  select(.,c(E226r_na,E229r_na)) %>%
+  rowMeans(na.rm = TRUE)
+wvs_china$demutir <- wvs_china %>%
+  select(.,c(E224r_na,E227r_na)) %>%
   rowMeans(na.rm = TRUE)
 wvs_china$demscore <- wvs_china %>%
   select(E224r_na,E226r_na,E227r_na,E229r_na) %>%
@@ -166,85 +191,40 @@ wvs_china <- wvs_china %>%
 ```{r}
 #| eval: false
 #| echo: false
-t1_wvs <- datasummary(marriage + class_sub + socialLevel + interstpol + trust_gover + trust_gover_max +  trust_party + trust_party_max + trust_civil + trust_parli + dempro + demuti + demimportant + demlevel + leader + expert + army + proud ~ 
+t1_wvs <- datasummary(marriage + class_sub + socialLevel + interstpol + trust_gover + trust_gover_max +  trust_party + trust_party_max + trust_civil + trust_parli + dempro + demuti + demimportant + demlevel + leader  + proud  + dempror + demutir + demproz + demutiz ~ 
                         as.factor(wave) * (Mean + SD + (Number = N)),
   data = wvs_china,
-  output = "tinytable",
+  # output = "tinytable",
+  output = '../table/wvs_des.html',
   title = "WVS Description"
   )
-t1_wvs
+
 ```
 
-## dataAnalysis
 
-### trust_party
-
+## des_concept
 ```{r}
-#| eval: false
-#| echo: false
-lm_gover <- lmerTest::lmer(trust_party ~ agez + gender + edu + interstpol + marriage + class_sub + (1|cohort10) + (1|period),
-                  data = wvs_china,
-                  weights = weight,
-                  # REML = TRUE
-                  control = glmerControl(
-                    optimizer ='optimx', optCtrl=list(method='L-BFGS-B'))
-)
+wvs_china_group <- wvs_china %>%
+  group_by(cohort) %>%
+  summarise(dempro_group = mean(dempro,na.rm = TRUE),
+            demuti_group = mean(demuti,na.rm = TRUE),
+            demscore_group = mean(demscore,na.rm = TRUE))
 
-# Extract the random effect
-u0 <- ranef(lm_gover, condVar = TRUE)
-names(u0$period) <- "est"
-names(u0$cohort10) <- "est"
+temp <- wvs_china_group %>%
+  select(cohort,dempro_group,demuti_group,demscore_group) %>%
+  filter(.,cohort != "NA")
 
-#Extract the standard error
-period_eff <- data.frame(est = u0$period, 
-                         se = sqrt(attr(u0[[2]], "postVar")[1, ,]),
-                         period = c(2001, 2007, 2013, 2018))
-cohort_eff <- data.frame(est = u0$cohort5, 
-                         se = sqrt(attr(u0[[1]], "postVar")[1, ,]),
-                         cohort = c("1905/1948", 
-                                    "1949/1954", 
-                                    "1955/1959",
-                                    "1960/1964",
-                                    "1965/1969",
-                                    "1970/1974",
-                                    "1975/1979",
-                                    "1980/1984",
-                                    "1985/1989",
-                                    "1990/1994",
-                                    "1995/2000"))
+p1_pro <- temp %>%
+  ggplot(aes(x = cohort, y = dempro_group, group = cohort)) +
+  geom_point() 
+p1_uti <- temp %>%
+  ggplot(aes(x = cohort, y = demuti_group, group = cohort)) +
+  geom_point() 
+p1_dem <- ggarrange(p1_pro,p1_uti)
+ggsave(p1_dem,file = "../fig/demconcept_group.pdf")
 
-cohort_eff <- data.frame(est = u0$cohort10, 
-                         se = sqrt(attr(u0[[1]], "postVar")[1, ,]),
-                         cohort = c("1905/1948", 
-                                    "1949/1958", 
-                                    "1959/1968",
-                                    "1969/1978",
-                                    "1979/1988",
-                                    "1989/2000"))
-
-period_eff$upper <- period_eff$est + 1.96*period_eff$se
-period_eff$lower <- period_eff$est - 1.96*period_eff$se
-cohort_eff$upper <- cohort_eff$est + 1.96*cohort_eff$se
-cohort_eff$lower <- cohort_eff$est - 1.96*cohort_eff$se
-
-
-plot_period <- ggplot(period_eff, aes(x = period, y = est)) +
-  geom_point() + 
-  geom_errorbar(aes(ymin = lower, ymax = upper), width = .2) + 
-  xlab("Year") + 
-  ylab("Conditional log odds of the period effect")
-plot_period
-
-plot_cohort <- ggplot(cohort_eff, aes(x = cohort, y = est)) +
-  geom_point() + 
-  geom_errorbar(aes(ymin = lower, ymax = upper), width = .2) + 
-  xlab("Cohort") + 
-  ylab("Conditional log odds of the cohort effect")
-plot_cohort
-
-ggsave(plot_period,file = "../fig/effect_period.pdf")
-ggsave(plot_cohort,file = "../fig/effect_cohort.pdf")
 ```
+
 
 ## RE
 ### Concept
@@ -255,9 +235,10 @@ ggsave(plot_cohort,file = "../fig/effect_cohort.pdf")
 lm_pro <- lmerTest::lmer(dempro ~ age + gender + edu + interstpol + marriage + socialLevel + (1|period) +(1|cohort),
                          data = wvs_china,
                          weights = weight)
-lm_pro10 <- update(lm_pro,. ~ . -(1|cohort) + (1|cohort10))
-
 lm_uti <- update(lm_pro, demuti ~ .)
+# lm_pro10 <- update(lm_pro,. ~ . -(1|cohort) + (1|cohort10))
+
+
 
 # Extract the random effect
 u0_pro <- ranef(lm_pro, condVar = TRUE)
@@ -298,12 +279,12 @@ pr_cohort_pro
 
 ```
 
-### FE
+## FE
 ```{r}
 fm_pro <- lm(dempro ~ age + gender + edu + interstpol + marriage + socialLevel + period + cohort,
              data = wvs_china,
              weights = weight)
-fm_pro10 <- update(fm_pro, .~. -cohort + cohort10)
+# fm_pro10 <- update(fm_pro, .~. -cohort + cohort10)
 fm_uti <- update(fm_pro, demuti ~ .)
 
 fm1_cohort_pro <- broom::tidy(fm_pro) %>%
@@ -341,7 +322,7 @@ fm1_period_uti <- broom::tidy(fm_uti) %>%
 pf_cohort_pro <- ggplot(fm1_cohort_pro, aes(x = cohort, y = est)) +
   geom_point() + 
   geom_errorbar(aes(ymin = lower, ymax = upper), width = .15) + 
-  scale_y_continuous(limits = c(-1,2)) +
+  scale_y_continuous(limits = c(-2,2)) +
   geom_hline(
     yintercept = 0,
     colour = "grey60",
@@ -353,12 +334,12 @@ pf_cohort_pro
 pf_cohort_uti <- ggplot(fm1_cohort_uti, aes(x = cohort, y = est)) +
   geom_point() + 
   geom_errorbar(aes(ymin = lower, ymax = upper), width = .15) + 
-  scale_y_continuous(limits = c(-1,2)) +
+  scale_y_continuous(limits = c(-2,2)) +
   geom_hline(
     yintercept = 0,
     colour = "grey60",
     linetype = 2) +
-  xlab("Year") + 
+  xlab("Cohort") + 
   ylab("The cohort effect of Demuti")
 pf_cohort_uti
 
@@ -368,6 +349,8 @@ pf_cohort_pro2uti_wvs <- ggarrange(pf_cohort_pro,
                                    pf_cohort_uti)
 
 plot_cohort_dempro_wvs
+
+# ggsave(pf_cohort_pro2uti_wvs,file = "../fig/pf_cohort_pro2uti_wvs.pdf")
 ```
 
 ### Period_effect
@@ -409,6 +392,7 @@ plot_demuti_FE <- ggarrange(
 )
 plot_demuti_FE
 ```
+
 
 # CBS
 ## cbs2002
@@ -558,7 +542,7 @@ cbs2002$autho <- cbs2002 %>%
   rowMeans(na.rm = TRUE)
 
 cbs2002clean <- cbs2002 %>%
-  select(.,id,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demsuit,demsatisify,leader,expert,army,compete,lifestyle,systembest,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho7,autho8,autho9,ecofamily5,ecofamily,ecocountry5,ecocountry)
+  select(.,id,wave,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demsuit,demsatisify,leader,expert,army,compete,lifestyle,systembest,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho7,autho8,autho9,ecofamily5,ecofamily,ecocountry5,ecocountry)
 
 # write.csv(cbs2002,file = "../dataclean/cbs2002.csv")
 ```
@@ -571,7 +555,7 @@ cbs2002clean <- cbs2002 %>%
 #| echo: false
 cbs2008_raw <- haven::read_dta("../data/cbs/cbs2008.dta") %>%
   mutate(year = 2008,
-         wave = 1) 
+         wave = 2) 
 cbs2008_raw[cbs2008_raw < 0] <- NA
 cbs2008 <- cbs2008_raw %>%
   dplyr::select(.,number,PROV,year,wave,a1,b1,b6,c3,c9,j1,j2,j3,j3a,j4,j8,j25,j28,j35,f30a,f30b,f30c,f30d,g1n,g1o,h1c,h1n,h3,h9,h11a,h11d,h12,w,f1e,f1g,f1h,g1m,h1f,h1g,d10k,d10d,c12j,h1j,b2a,b2b,b2c,b2d,b2e,b2f,b2g,c6,c7,c9,c10) %>%
@@ -711,7 +695,7 @@ cbs2008$autho <- cbs2008 %>%
   rowMeans(na.rm = TRUE)
 
 cbs2008clean <- cbs2008 %>%
-  select(.,id,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demlevel_usa,demsuit,demsatisify,leader,army,lifestyle,proud,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho7,autho8,autho9,ecofamily5,ecofamily,ecocountry,ecocountry5)
+  select(.,id,wave,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demlevel_usa,demsuit,demsatisify,leader,army,lifestyle,proud,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho7,autho8,autho9,ecofamily5,ecofamily,ecocountry,ecocountry5)
 # write.csv(cbs2008,file = "../dataclean/cbs2008.csv")
 ```
 
@@ -722,7 +706,7 @@ cbs2008clean <- cbs2008 %>%
 #| echo: false
 cbs2011_raw <- haven::read_dta("../data/cbs/cbs2011.dta") %>%
   mutate(year = 2011,
-         wave = 1) %>%
+         wave = 3) %>%
   rename(id = idnumber,
          province = PROVINCE,
          weight = wCN)
@@ -865,7 +849,7 @@ cbs2011$autho <- cbs2011 %>%
   rowMeans(na.rm = TRUE)
 
 cbs2011clean <- cbs2011 %>%
-  select(.,id,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demlevel_usa,demsuit,demsatisify,leader,expert,army,compete,lifestyle,proud,demscore,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho7,autho8,autho9,ecofamily5,ecofamily,ecocountry,ecocountry5)
+  select(.,id,wave,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demlevel_usa,demsuit,demsatisify,leader,expert,army,compete,lifestyle,proud,demscore,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho7,autho8,autho9,ecofamily5,ecofamily,ecocountry,ecocountry5)
 
 ```
 
@@ -877,7 +861,7 @@ cbs2011clean <- cbs2011 %>%
 
 cbs2014_raw <- haven::read_sav("../data/cbs/cbs2014.sav") %>%
   mutate(year = 2014,
-         wave = 1)
+         wave = 4)
 
 cbs2014_raw[cbs2014_raw < 0] <- NA
 cbs2014 <- cbs2014_raw %>%
@@ -1008,7 +992,7 @@ cbs2014$autho <- cbs2014 %>%
   rowMeans(na.rm = TRUE)
 
 cbs2014clean <- cbs2014 %>%
-  select(.,id,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demlevel_usa,demsuit,demsatisify,leader,expert,army,party,lifestyle,proud,demscore,autho,autho2,autho3,autho4,autho5,autho6,autho8,autho9,ecofamily5,ecofamily,ecocountry,ecocountry5)
+  select(.,id,wave,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demlevel_usa,demsuit,demsatisify,leader,expert,army,party,lifestyle,proud,demscore,autho,autho2,autho3,autho4,autho5,autho6,autho8,autho9,ecofamily5,ecofamily,ecocountry,ecocountry5)
 # write.csv(cbs2014,file = "../dataclean/cbs2014.csv")
 ```
 
@@ -1019,7 +1003,7 @@ cbs2014clean <- cbs2014 %>%
 #| echo: false
 cbs2019_raw <- haven::read_sav("../data/cbs/cbs2019.sav") %>%
   mutate(year = 2019,
-         wave = 1) 
+         wave = 5) 
 
 # cbs2019_raw[cbs2019_raw < 0] <- NA
 
@@ -1147,7 +1131,7 @@ cbs2019clean <- cbs2019 %>%
 ## datacombine
 ```{r}
 #| label: cbs data
-#| warning: false
+
 cbs <- cbs2019clean %>%
   bind_rows(.,cbs2014clean) %>%
   bind_rows(.,cbs2011clean) %>%
@@ -1189,10 +1173,7 @@ cbs <- cbs %>%
       yearbirth %in% c(1981:2001) ~ 5,
     )
   )
-cbs$ecocountry <- scales::rescale(cbs$ecocountry,to = c(0,1))
-cbs$ecocountry5 <- scales::rescale(cbs$ecocountry5,to = c(0,1))
-cbs$ecofamily <- scales::rescale(cbs$ecofamily,to = c(0,1))
-cbs$ecofamily5 <- scales::rescale(cbs$ecofamily5,to = c(0,1))
+
 
  # write.csv(cbs,file = "../data/cbs.csv")
 
@@ -1219,7 +1200,7 @@ t2_cbs <- modelsummary::datasummary(
   output = "tinytable",
             data = cbs)
 
-t2_cbs
+# t2_cbs
 
 ls_ctrl <- c(
   "age" = "Age",
@@ -1247,7 +1228,7 @@ ls_ctrl <- c(
   year2019 = "2019"
 )
 
-write.csv(cbs,file = "../data/cbs.csv")
+# write.csv(cbs,file = "../data/cbs.csv")
 ```
 
 
@@ -1273,6 +1254,7 @@ fa.diagram(pc_cbs$loadings, digits = 3)
 #| label: concept
 ## cohort
 # glm_concept <- stan_glmer(as.factor(demscorer) ~ age + female + party + edu + interstpol + frepol + socialLevel + hukouRural + marriage  + (1|cohort) + (1|year),data = cbs,family = binomial)
+
 lm_concept <- lmerTest::lmer(demscore ~ age + female + party + edu + interstpol + frepol + socialLevel + hukouRural + marriage  + (1|cohort) + (1|year),data = cbs,weights = weight)
 lm_demlevel <- update(lm_concept,demlevel ~.)
 lm_demsatisify <- update(lm_concept,demsatisify ~.)
@@ -1433,8 +1415,8 @@ plot_period_cohort_effect <- ggarrange(
 
 plot_cohort_cohort_effect
 plot_period_cohort_effect 
-# ggsave(plot_period_cohrot_concept,file = "../fig/period_cohort_concept.pdf")
-# ggsave(plot_cohort_cohort_concpet,file = "../fig/cohort_cohort_concept.pdf")
+# ggsave(plot_cohort_cohort_effect,file = "../fig/re_cohort_concept.pdf")
+# ggsave(plot_period_cohort_effect,file = "../fig/re_period_concept.pdf")
 ```
 
 ::: {.callout-imp}
@@ -1777,6 +1759,7 @@ plot_period_cohort5_effect
 ### cohort
 ```{r}
 ## cohort
+cbs <- read.csv("../data/cbs.csv")
 gfm_concept <- glm(as.factor(demscorer) ~ age + female + party + edu + interstpol + frepol + socialLevel + hukouRural + marriage  + as.factor(cohort) + year,data = cbs,family = binomial)
 fm_concept <- lm(demscore ~ age + female + party + edu + interstpol + frepol + socialLevel + hukouRural + marriage  + as.factor(cohort) + year,data = cbs,weights = weight)
 fm_demlevel <- update(fm_concept,demlevel ~.)
@@ -1836,7 +1819,7 @@ p1_concept <- ggplot(fm1_concept, aes(x = cohort, y = est)) +
     colour = "grey60"
   ) +
   scale_y_continuous(limits = c(-1.5,1)) +
-  xlab("Year") + 
+  xlab("Cohort") + 
   ylab("The cohort effect of Concept")
 
 p1_demlevel <- ggplot(fm1_demlevel, aes(x = cohort, y = est)) +
@@ -1848,7 +1831,7 @@ p1_demlevel <- ggplot(fm1_demlevel, aes(x = cohort, y = est)) +
     colour = "grey60"
   ) +
   scale_y_continuous(limits = c(-1.5,1)) +
-  xlab("Year") + 
+  xlab("Cohort") + 
   ylab("The cohort effect of Demlevel")
 
 
@@ -1861,7 +1844,7 @@ p1_demsatisify <- ggplot(fm1_demsatisify, aes(x = cohort, y = est)) +
     colour = "grey60"
   ) + 
   scale_y_continuous(limits = c(-1.5,1)) +
-  xlab("Year") + 
+  xlab("Cohort") + 
   ylab("The cohort effect of Demsatisify")
 
 p1_dem <- ggarrange(
@@ -1869,7 +1852,9 @@ p1_dem <- ggarrange(
   Demsatisify = p1_demsatisify,
   Concept = p1_concept,
   ncol = 3, nrow = 1) 
+
 p1_dem
+ggsave(p1_dem,file = "../fig/fe_cohort_dem.pdf")
 ```
 
 
@@ -1988,7 +1973,7 @@ pr_leader <- ggarrange(
   plot_period_leader
 )
 pr_leader
-
+# ggsave(pr_leader,file = "../fig/re_leader.pdf")
 ```
 
 #### cohort5/10
@@ -2172,6 +2157,7 @@ rf_period_leader <- ggarrange(
   plot_period_leader
 )
 rf_period_leader
+# ggsave(pf_leader,file = "../fig/pf_leader.pdf")
 ```
 
 
@@ -2305,19 +2291,151 @@ plot_autho_FE <- ggarrange(
 plot_autho_FE
 ```
 
+# Economic persive
 
-### eco
+## cohort effect
 ```{r}
-mds <- haven::read_dta("../data/eco/maddison2023.dta") %>%
-  filter(countrycode == "CHN") %>%
-  filter(year >= "1900") %>%
-  select(.,year,gdppc,pop) %>%
-  filter(.,year != "730")
-mds_su <- haven::read_dta("../data/eco/gdpData.dta") 
-mds_china <- mds %>%
-  left_join(.,mds_su)
-  
-rm(mds,mds_su)
+#| label: persive
+fm_country <- update(fm_concept, ecocountry ~ .)
+fm_country5 <- update(fm_concept, ecocountry5 ~ .)
+fm_family <- update(fm_concept, ecofamily ~ .)
+fm_family5 <- update(fm_concept, ecofamily5 ~ .)
+
+fm_cohort_country <- broom::tidy(fm_country) %>%
+  filter(grepl("^as.",term)) %>%
+  rename(
+    est = estimate,
+    se = std.error,
+    cohort = term
+  ) %>%
+  mutate(
+    upper = est + 1.96 * se,
+    lower = est - 1.96 * se
+  )
+fm_cohort_country$cohort <- gsub("^(as.factor)", "",fm_cohort_country$cohort)
+
+pf_cohort_country <- ggplot(fm_cohort_country, aes(x = cohort, y = est)) +
+  geom_point() + 
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = .15) + 
+  # scale_y_continuous(limits = c(-.8,.8)) +
+  geom_hline(
+    yintercept = 0,
+    colour = "grey60",
+    linetype = 2) +
+  xlab("Cohort") + 
+  ylab("The cohort effect of Eco_country")
+pf_cohort_country
+
+
+fm_cohort_country5 <- broom::tidy(fm_country5) %>%
+  filter(grepl("^as.",term)) %>%
+  rename(
+    est = estimate,
+    se = std.error,
+    cohort = term
+  ) %>%
+  mutate(
+    upper = est + 1.96 * se,
+    lower = est - 1.96 * se
+  )
+fm_cohort_country5$cohort <- gsub("^(as.factor)", "",fm_cohort_country5$cohort)
+
+pf_cohort_country5 <- ggplot(fm_cohort_country5, aes(x = cohort, y = est)) +
+  geom_point() + 
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = .15) + 
+  scale_y_continuous(limits = c(-.8,.8)) +
+  geom_hline(
+    yintercept = 0,
+    colour = "grey60",
+    linetype = 2) +
+  xlab("Cohort") + 
+  ylab("The cohort effect of Eco_country5")
+pf_cohort_country5
+
+
+fm_cohort_family <- broom::tidy(fm_family) %>%
+  filter(grepl("^as.",term)) %>%
+  rename(
+    est = estimate,
+    se = std.error,
+    cohort = term
+  ) %>%
+  mutate(
+    upper = est + 1.96 * se,
+    lower = est - 1.96 * se
+  )
+fm_cohort_family$cohort <- gsub("^(as.factor)", "",fm_cohort_family$cohort)
+
+pf_cohort_family <- ggplot(fm_cohort_family, aes(x = cohort, y = est)) +
+  geom_point() + 
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = .15) + 
+  scale_y_continuous(limits = c(-.5,.5)) +
+  geom_hline(
+    yintercept = 0,
+    colour = "grey60",
+    linetype = 2) +
+  xlab("Cohort") + 
+  ylab("The cohort effect of Eco_family")
+pf_cohort_family
+
+
+fm_cohort_family5 <- broom::tidy(fm_family5) %>%
+  filter(grepl("^as.",term)) %>%
+  rename(
+    est = estimate,
+    se = std.error,
+    cohort = term
+  ) %>%
+  mutate(
+    upper = est + 1.96 * se,
+    lower = est - 1.96 * se
+  )
+fm_cohort_family5$cohort <- gsub("^(as.factor)", "",fm_cohort_family5$cohort)
+
+pf_cohort_family5 <- ggplot(fm_cohort_family5, aes(x = cohort, y = est)) +
+  geom_point() + 
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = .15) + 
+  scale_y_continuous(limits = c(-.5,.5)) +
+  geom_hline(
+    yintercept = 0,
+    colour = "grey60",
+    linetype = 2) +
+  xlab("Cohort") + 
+  ylab("The cohort effect of Eco_family5")
+pf_cohort_family5
+
+```
+
+
+
+## year effect
+```{r}
+fm_period_country <- broom::tidy(fm_country) %>%
+  filter(grepl("^year.",term)) %>%
+  rename(
+    est = estimate,
+    se = std.error,
+    Period = term
+  ) %>%
+  mutate(
+    upper = est + 1.96 * se,
+    lower = est - 1.96 * se
+  )
+fm_period_country$Period <- gsub("^year", "",fm_period_country$Period)
+
+pf_period_country <- ggplot(fm_period_country, aes(x = Period, y = est)) +
+  geom_point() + 
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = .15) + 
+  # scale_y_continuous(limits = c(-.8,.8)) +
+  geom_hline(
+    yintercept = 0,
+    colour = "grey60",
+    linetype = 2) +
+  xlab("Period") + 
+  ylab("The Period effect of Authority")
+pf_period_country
+
+
 ```
 
 # Regression
@@ -2333,24 +2451,28 @@ fulldata_wvs <- wvs_china %>%
   ungroup()
 
 gdppc2demscore <- lm(demscore ~ log(gdppc_mean)  + age + gender + edu  + interstpol + marriage + socialLevel  + proud, data = fulldata_wvs)
-
-gdp2diff <- update(gdppc2demscore, diffpro2uti ~ .)
-
-gdppc2diff <- update(gdp2diff, . ~ . - log(gdp_mean) + log(gdppc_mean))
-growth2diff <- update(gdp2diff,.~. - log(gdp_mean) + log(growth_mean))
+gdppc2diff <- update(gdppc2demscore,diffpro2uti ~ .)
 
 list_eco2dem <- list(
   gdppc2demscore = gdppc2demscore,
-  gdp2diff = gdp2diff,
-  gdppc2diff = gdppc2diff,
-  growth2diff = growth2diff
+  gdppc2diff = gdppc2diff
 )
 
 msummary(list_eco2dem,
          stars = TRUE)
 ```
 
+
+### concept2level
+```{r}
+diff2level <- lm(demlevel ~ demdiff + age +)
+```
+
+
+
 ## cbs
+### autho
+#### gppc_mean's effect
 ```{r}
 # cbs <- read_csv("../data/cbs.csv",show_col_types = FALSE)
 fulldata_cbs <- cbs %>%
@@ -2361,34 +2483,119 @@ fulldata_cbs <- cbs %>%
          growth_mean = mean(growth,na.rm = TRUE)) %>%
   ungroup()
 
-gdppc2autho_mean <- lm(autho ~ log(gdppc_mean)  + socialLevel +female + edu + hukouRural + interstpol + frepol + marriage + party, data = fulldata_cbs,weights = weight)
+gdppc2autho_mean <- lm(autho ~ log(gdppc_mean) + age + socialLevel +female + edu + hukouRural + interstpol + frepol + marriage + party, data = fulldata_cbs,weights = weight)
 ic5_gdppc2autho <- lm(autho ~ log(gdppc_mean) *  ecocountry5 + age + socialLevel +female + edu + hukouRural + interstpol + frepol + marriage + party, data = fulldata_cbs,weights = weight)
 ic_gdppc2autho <- update(ic5_gdppc2autho, . ~ . - log(gdppc_mean) *  ecocountry5 + log(gdppc_mean) *  ecocountry)
 if5_gdppc2autho <- update(ic5_gdppc2autho, . ~ . - log(gdppc_mean) *  ecocountry5 + log(gdppc_mean) *  ecofamily5)
 if_gdppc2autho <- update(ic5_gdppc2autho, . ~ . - log(gdppc_mean) *  ecocountry5 + log(gdppc_mean) *  ecofamily)
 
 
-gdppc2autho <- update(gdppc2autho_mean, . ~ . - log(gdppc_mean) + log(gdppc))
-gdp2autho_mean <- update(gdppc2autho_mean, . ~ . + log(gdp_mean) - log(gdppc_mean))
-gdp2autho <- update(gdp2autho_mean, . ~ . - log(gdp_mean) + log(gdp))
-
-gdp2ecofamily <- update(gdp2autho,ecofamily ~ .)
-
-# gdppc2leader <- update(gdppc2autho, leader ~ .)
-# gdp2leader <- update(gdppc2leader, . ~ + log(gdp_mean) - log(gdppc_mean))
-
-
-list_eco2author <- list(
-  gdppc2autho = gdppc2autho,
+list_gdppc2author_mean <- list(
   gdppc2autho_mean = gdppc2autho_mean,
   if5_gdppc2autho = if5_gdppc2autho,
   ic5_gdppc2autho = ic5_gdppc2autho,
   if_gdppc2autho = if_gdppc2autho,
   ic_gdppc2autho = ic_gdppc2autho
-  
 )
 
 msummary(list_eco2author,
+         stars = TRUE)
+```
+
+
+#### gdppc's effect
+```{r}
+gdppc2autho <- update(gdppc2autho_mean, . ~. - log(gdppc_mean) + log(gdppc))
+ic5_gdppc2autho  <- lm(autho ~ log(gdppc) *  ecocountry5 + age + socialLevel +female + edu + hukouRural + interstpol + frepol + marriage + party, data = fulldata_cbs,weights = weight)
+ic_gdppc2autho <- update(ic5_gdppc2autho, . ~ . - log(gdppc) *  ecocountry5 + log(gdppc) *  ecocountry)
+if5_gdppc2autho <- update(ic5_gdppc2autho, . ~ . - log(gdppc) *  ecocountry5 + log(gdppc) *  ecofamily5)
+if_gdppc2autho <- update(ic5_gdppc2autho, . ~ . - log(gdppc) *  ecocountry5 + log(gdppc) *  ecofamily)
+
+list_gdppc2author <- list(
+  gdppc2autho = gdppc2autho,
+  ic5_gdppc2autho = ic5_gdppc2autho,
+  ic_gdppc2autho = ic_gdppc2autho,
+  if5_gdppc2autho = if5_gdppc2autho,
+  if_gdppc2autho = if_gdppc2autho
+)
+
+msummary(list_gdppc2author,
+         stars = TRUE)
+
+```
+
+
+#### gdp's efect
+```{r}
+gdp2autho <- update(gdppc2autho_mean, . ~ . - log(gdppc_mean) + log(gdp_mean))
+ic5_gdp2autho <- lm(autho ~ log(gdp_mean) *  ecocountry5 + age + socialLevel +female + edu + hukouRural + interstpol + frepol + marriage + party, data = fulldata_cbs,weights = weight)
+ic_gdp2autho <- update(ic5_gdp2autho, . ~ . - log(gdp_mean) *  ecocountry5 + log(gdp_mean) *  ecocountry)
+if5_gdp2autho <- update(ic5_gdp2autho, . ~ . - log(gdp_mean) *  ecocountry5 + log(gdp_mean) *  ecofamily5)
+if_gdp2autho <- update(ic5_gdp2autho, . ~ . - log(gdp_mean) *  ecocountry5 + log(gdp_mean) *  ecofamily)
+
+
+list_gdp2author <- list(
+  gdp2autho = gdp2autho,
+  ic5_gdp2autho = ic5_gdp2autho,
+  ic_gdp2autho = ic_gdp2autho,
+  if5_gdp2autho = if5_gdp2autho,
+  if_gdp2autho = if_gdp2autho
+)
+
+msummary(list_gdp2author,
+         stars = TRUE)
+```
+
+
+
+
+
+
+#### medaition/inter
+
+```{r}
+#| label: no effect
+#| eval: false
+ipcf5 <- lm(leader ~ log(gdppc) * ecofamily5  + + age + socialLevel + female + edu + hukouRural + interstpol  + marriage + party, data = fulldata_cbs,weights = weight)
+ipcf <- update(ipcf5, . ~ . - log(gdppc) * ecofamily5 + log(gdppc) * ecofamily)
+ipcc5 <- update(ipcf5, . ~ . - log(gdppc) * ecofamily5 + log(gdppc) * ecocountry5)
+ipcc <- update(ipcf5, . ~ . - log(gdppc) * ecofamily5 + log(gdppc) * ecocountry)
+
+list_mpc <- list(
+  ipcf5 = ipcf5,
+  ipcf = ipcf,
+  ipcc5 = ipcc5,
+  ipcc = ipcc
+)
+
+msummary(list_mpc,
+         stars = TRUE)
+## 只有国家5年前为正，家庭没影响，国家现在为负。
+
+
+## total effect
+mpc2au_c5 <- update(mpc2c5, autho ~ . + ecocountry5)
+```
+
+### leader
+```{r}
+pc2l <- update(gdppc2autho_mean, leader ~ .)
+dp2l <- update(pc2l,.~. -log(gdppc_mean) + log(gdp_mean))
+
+ic_pc2l <- lm(leader ~ lag(log(gdppc),1) * ecofamily + age + socialLevel + female + edu + hukouRural + frepol + marriage + party, data = fulldata_cbs,weights = weight)
+ic5_pc2l <- update(ic_pc2l, . ~ .  - lag(log(gdppc),1) * ecofamily + lag(log(gdppc),1) * ecofamily5)
+if_pc2l <- update(ic_pc2l, . ~ . - lag(log(gdppc),1) * ecofamily + lag(log(gdppc),1) * ecocountry5)
+if5_pc2l <- update(ic_pc2l, . ~ . - lag(log(gdppc),1) * ecofamily + lag(log(gdppc),1) * ecocountry)
+
+
+mlead <- list(
+  ic_pc2l = ic_pc2l,
+  ic5_pc2l = ic5_pc2l,
+  if_pc2l = if_pc2l,
+  if5_pc2l = if5_pc2l
+)
+
+msummary(mlead,
          stars = TRUE)
 ```
 
