@@ -1,0 +1,104 @@
+{\rtf1\fs24
+\trowd\trgaph75\trleft-75\intbl\trqc\clbrdrt\brdrs\cellx3312\clbrdrt\brdrs\cellx4752\clbrdrt\brdrs\cellx6192\clbrdrt\brdrs\cellx7632\clbrdrt\brdrs\cellx9072
+\ql \cell\qc (1)\cell\qc (2)\cell\qc (3)\cell\qc (4)\cell\row
+\trowd\trgaph75\trleft-75\trqc\cellx3312\cellx4752\cellx6192\cellx7632\cellx9072
+\trowd\trgaph75\trleft-75\trqc\clbrdrb\brdrs\cellx3312\clbrdrb\brdrs\cellx4752\clbrdrb\brdrs\cellx6192\clbrdrb\brdrs\cellx7632\clbrdrb\brdrs\cellx9072
+\ql VARIABLES\cell\qc y\cell\qc y\cell\qc y\cell\qc y\cell\row
+\trowd\trgaph75\trleft-75\trqc\cellx3312\cellx4752\cellx6192\cellx7632\cellx9072
+\ql \cell\qc \cell\qc \cell\qc \cell\qc \cell\row
+\ql ln_remainenterprisenum\cell\qc -0.098***\cell\qc -0.085***\cell\qc -0.180***\cell\qc 0.263**\cell\row
+\ql \cell\qc (-5.23)\cell\qc (-3.39)\cell\qc (-5.90)\cell\qc (2.23)\cell\row
+\ql age\cell\qc 0.023***\cell\qc 0.023***\cell\qc 0.023***\cell\qc 0.023***\cell\row
+\ql \cell\qc (19.23)\cell\qc (19.17)\cell\qc (19.14)\cell\qc (19.17)\cell\row
+\ql female\cell\qc 0.077***\cell\qc 0.076***\cell\qc 0.079***\cell\qc 0.078***\cell\row
+\ql \cell\qc (2.74)\cell\qc (2.70)\cell\qc (2.79)\cell\qc (2.78)\cell\row
+\ql edu\cell\qc -0.343***\cell\qc -0.341***\cell\qc -0.345***\cell\qc -0.343***\cell\row
+\ql \cell\qc (-17.16)\cell\qc (-16.97)\cell\qc (-17.08)\cell\qc (-16.96)\cell\row
+\ql party\cell\qc -0.136***\cell\qc -0.127***\cell\qc -0.132***\cell\qc -0.123**\cell\row
+\ql \cell\qc (-2.80)\cell\qc (-2.60)\cell\qc (-2.72)\cell\qc (-2.52)\cell\row
+\ql interstpol\cell\qc -0.044**\cell\qc -0.046**\cell\qc -0.041**\cell\qc -0.041**\cell\row
+\ql \cell\qc (-2.21)\cell\qc (-2.32)\cell\qc (-2.07)\cell\qc (-2.06)\cell\row
+\ql frepol\cell\qc -0.011\cell\qc -0.010\cell\qc -0.001\cell\qc -0.000\cell\row
+\ql \cell\qc (-0.87)\cell\qc (-0.82)\cell\qc (-0.11)\cell\qc (-0.01)\cell\row
+\ql marriage\cell\qc 0.071\cell\qc 0.066\cell\qc 0.068\cell\qc 0.063\cell\row
+\ql \cell\qc (1.64)\cell\qc (1.53)\cell\qc (1.59)\cell\qc (1.46)\cell\row
+\ql hukourural\cell\qc 0.271***\cell\qc 0.273***\cell\qc 0.280***\cell\qc 0.273***\cell\row
+\ql \cell\qc (7.38)\cell\qc (7.30)\cell\qc (7.50)\cell\qc (7.18)\cell\row
+\ql sociallevel\cell\qc 0.042***\cell\qc 0.042***\cell\qc 0.042***\cell\qc 0.038***\cell\row
+\ql \cell\qc (5.04)\cell\qc (4.47)\cell\qc (4.95)\cell\qc (4.03)\cell\row
+\ql GDP_per_capita\cell\qc 0.000*\cell\qc 0.000\cell\qc 0.000***\cell\qc 0.000***\cell\row
+\ql \cell\qc (1.80)\cell\qc (1.45)\cell\qc (3.74)\cell\qc (5.27)\cell\row
+\ql 2.province_num\cell\qc \cell\qc \cell\qc 0.205\cell\qc 0.895***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (1.21)\cell\qc (3.62)\cell\row
+\ql 3.province_num\cell\qc \cell\qc \cell\qc -0.033\cell\qc 0.739***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (-0.18)\cell\qc (2.67)\cell\row
+\ql 4.province_num\cell\qc \cell\qc \cell\qc -0.309*\cell\qc -0.367**\cell\row
+\ql \cell\qc \cell\qc \cell\qc (-1.87)\cell\qc (-2.21)\cell\row
+\ql 5.province_num\cell\qc \cell\qc \cell\qc 0.293*\cell\qc 1.139***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (1.76)\cell\qc (4.15)\cell\row
+\ql 6.province_num\cell\qc \cell\qc \cell\qc 0.524***\cell\qc 0.828***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (3.07)\cell\qc (4.36)\cell\row
+\ql 7.province_num\cell\qc \cell\qc \cell\qc 0.254\cell\qc 0.831***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (1.28)\cell\qc (3.33)\cell\row
+\ql 8.province_num\cell\qc \cell\qc \cell\qc 0.319\cell\qc 1.494**\cell\row
+\ql \cell\qc \cell\qc \cell\qc (0.48)\cell\qc (2.01)\cell\row
+\ql 9.province_num\cell\qc \cell\qc \cell\qc 0.131\cell\qc 0.602***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (0.78)\cell\qc (2.89)\cell\row
+\ql 10.province_num\cell\qc \cell\qc \cell\qc 0.214\cell\qc 0.211\cell\row
+\ql \cell\qc \cell\qc \cell\qc (1.26)\cell\qc (1.24)\cell\row
+\ql 11.province_num\cell\qc \cell\qc \cell\qc 0.331**\cell\qc 1.015***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (2.00)\cell\qc (4.25)\cell\row
+\ql 12.province_num\cell\qc \cell\qc \cell\qc 0.134\cell\qc -0.152\cell\row
+\ql \cell\qc \cell\qc \cell\qc (0.78)\cell\qc (-0.81)\cell\row
+\ql 13.province_num\cell\qc \cell\qc \cell\qc 0.242\cell\qc 0.929***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (1.36)\cell\qc (3.69)\cell\row
+\ql 14.province_num\cell\qc \cell\qc \cell\qc 1.291***\cell\qc 2.074***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (3.13)\cell\qc (4.51)\cell\row
+\ql 15.province_num\cell\qc \cell\qc \cell\qc 0.412***\cell\qc 0.098\cell\row
+\ql \cell\qc \cell\qc \cell\qc (2.64)\cell\qc (0.56)\cell\row
+\ql 16.province_num\cell\qc \cell\qc \cell\qc -0.055\cell\qc 0.664***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (-0.31)\cell\qc (2.62)\cell\row
+\ql 17.province_num\cell\qc \cell\qc \cell\qc 0.349**\cell\qc 0.859***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (2.17)\cell\qc (4.17)\cell\row
+\ql 18.province_num\cell\qc \cell\qc \cell\qc 0.380**\cell\qc 0.768***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (2.30)\cell\qc (3.90)\cell\row
+\ql 19.province_num\cell\qc \cell\qc \cell\qc 0.145\cell\qc -0.075\cell\row
+\ql \cell\qc \cell\qc \cell\qc (0.86)\cell\qc (-0.42)\cell\row
+\ql 20.province_num\cell\qc \cell\qc \cell\qc 0.236\cell\qc 1.435***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (0.92)\cell\qc (3.53)\cell\row
+\ql 21.province_num\cell\qc \cell\qc \cell\qc 0.653***\cell\qc 0.964***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (4.03)\cell\qc (5.22)\cell\row
+\ql 22.province_num\cell\qc \cell\qc \cell\qc 0.094\cell\qc 0.568***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (0.57)\cell\qc (2.77)\cell\row
+\ql 23.province_num\cell\qc \cell\qc \cell\qc 0.404*\cell\qc 1.346***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (1.82)\cell\qc (4.13)\cell\row
+\ql 24.province_num\cell\qc \cell\qc \cell\qc 0.412***\cell\qc 0.654***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (2.58)\cell\qc (3.78)\cell\row
+\ql 26.province_num\cell\qc \cell\qc \cell\qc 0.340**\cell\qc 1.180***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (2.01)\cell\qc (4.32)\cell\row
+\ql 28.province_num\cell\qc \cell\qc \cell\qc -0.213\cell\qc -0.017\cell\row
+\ql \cell\qc \cell\qc \cell\qc (-1.21)\cell\qc (-0.09)\cell\row
+\ql 29.province_num\cell\qc \cell\qc \cell\qc -0.042\cell\qc 0.601**\cell\row
+\ql \cell\qc \cell\qc \cell\qc (-0.26)\cell\qc (2.54)\cell\row
+\ql 30.province_num\cell\qc \cell\qc \cell\qc 0.339**\cell\qc 0.976***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (2.08)\cell\qc (4.22)\cell\row
+\ql 31.province_num\cell\qc \cell\qc \cell\qc -0.992***\cell\qc 0.512\cell\row
+\ql \cell\qc \cell\qc \cell\qc (-3.54)\cell\qc (1.05)\cell\row
+\ql 32.province_num\cell\qc \cell\qc \cell\qc 0.232\cell\qc 0.877***\cell\row
+\ql \cell\qc \cell\qc \cell\qc (1.36)\cell\qc (3.69)\cell\row
+\ql 2008.year\cell\qc \cell\qc 0.027\cell\qc \cell\qc -0.538***\cell\row
+\ql \cell\qc \cell\qc (0.42)\cell\qc \cell\qc (-3.15)\cell\row
+\ql 2011.year\cell\qc \cell\qc -0.144**\cell\qc \cell\qc -1.052***\cell\row
+\ql \cell\qc \cell\qc (-2.09)\cell\qc \cell\qc (-4.10)\cell\row
+\ql 2019.year\cell\qc \cell\qc -0.033\cell\qc \cell\qc -1.867***\cell\row
+\ql \cell\qc \cell\qc (-0.34)\cell\qc \cell\qc (-3.82)\cell\row
+\ql Constant\cell\qc 10.906***\cell\qc 10.778***\cell\qc 11.596***\cell\qc 5.868***\cell\row
+\ql \cell\qc (43.93)\cell\qc (34.19)\cell\qc (34.25)\cell\qc (3.88)\cell\row
+\ql \cell\qc \cell\qc \cell\qc \cell\qc \cell\row
+\ql Observations\cell\qc 10,914\cell\qc 10,914\cell\qc 10,914\cell\qc 10,914\cell\row
+\trowd\trgaph75\trleft-75\trqc\trbrdrb\brdrs\clbrdrb\brdrs\cellx3312\clbrdrb\brdrs\cellx4752\clbrdrb\brdrs\cellx6192\clbrdrb\brdrs\cellx7632\clbrdrb\brdrs\cellx9072
+\ql R-squared\cell\qc 0.137\cell\qc 0.139\cell\qc 0.152\cell\qc 0.154\cell\row
+\pard\qc
+t-statistics in parentheses\par
+*** p<0.01, ** p<0.05, * p<0.1\par
+}
