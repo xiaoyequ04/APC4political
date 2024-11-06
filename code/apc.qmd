@@ -52,7 +52,7 @@ rm(mds,mds_su)
 #| label: wvs
 #| eval: false
 #| echo: false
-# load("../data/wvs/WVST.rdata")
+ # load("../data/wvs/WVST.rdata")
 wvs_china <- WVS_TimeSeries_1981_2022_spss_v3_0 %>%
   filter(.,COW_NUM == 710) %>%
   select(.,S002VS,S008,S020,COW_NUM,COW_ALPHA,E069_11,E069_12,E069_08,E069_07,E114,E115,E116,E117,E224,E225,E226,E227,E228,E229,E235,E236,E035,E036,E037,E039,X001,X002,X003,X025,X025R,X045,X047_WVS,X047R_WVS,X007,S017,E023,G006,X052,X051,D059,D060,D078,C001,F118,F120,F121,F122,F123,D057,A173,G007_18_B,G007_33_B,G007_34_B,G007_35_B,G007_36_B,E018) %>%
@@ -73,7 +73,8 @@ wvs_china <- WVS_TimeSeries_1981_2022_spss_v3_0 %>%
   ) %>%
   mutate(
     province = substr(province, start = 1, stop = 2)
-  )
+  ) %>%
+  filter(.,wave >= 5)
 
 # rm(WVS_TimeSeries_1981_2022_spss_v3_0)
 # wvs_china$agez <- scales::rescale(wvs_china$age,to = c(0,1))
@@ -88,7 +89,7 @@ wvs_china$occ <- Recode(wvs_china$X052_na,"2:4 = 0")
 
 ## job
 wvs_china$equali_gender <- wvs_china %>%
-  select(.,D078_na,D060_na,D057_na,D059_na) %>%
+  select(.,D078_na,D060_na) %>%
   rowMeans(na.rm = TRUE)
 wvs_china$equali_genderz <- scales::rescale(wvs_china$equali_gender,to = c(0,1))
 
@@ -144,7 +145,7 @@ wvs_china$E228r_na <- Recode(wvs_china$E228_na,"1:5 = 1; 6:10 = 0")
 wvs_china$E229r_na <- Recode(wvs_china$E229_na,"1:5 = 0; 6:10 = 1")
 wvs_china$E224s_na <- 11 - wvs_china$E224_na
 wvs_china$E227s_na <- 11 - wvs_china$E227_na
-
+wvs_china$E228s_na <- 11 - wvs_china$E228_na
 wvs_china$demscore_sub <- wvs_china %>%
   select(.,E224s_na,E226_na,E227s_na,E229_na) %>%
   rowMeans(na.rm = TRUE)
@@ -210,8 +211,17 @@ wvs_china <- wvs_china %>%
       yearbirth %in% c(1961:1970) ~ 3,
       yearbirth %in% c(1971:1980) ~ 4,
       yearbirth %in% c(1981:2001) ~ 5,
-    )
+    ),
+    cohort_political = case_when(
+      yearbirth %in% c(1905:1931) ~ "Pre",
+      yearbirth %in% c(1931:1948) ~ "Socialist",
+      yearbirth %in% c(1948:1960) ~ "Cultural Revolution",
+      yearbirth %in% c(1960:1971) ~ "Deng",
+      yearbirth %in% c(1971:1985) ~ "Jiang",
+      yearbirth %in% c(1985:1994) ~ "Hu",
+      yearbirth %in% c(1994:2001) ~ "Xi"
   )
+)
 
 wvs_china <- wvs_china %>%
   mutate(demproH = if_else(dempro > mean(dempro,na.rm = TRUE),1,0),
@@ -229,6 +239,7 @@ wvs_china <- wvs_china %>%
 # write.csv(wvs_china,file = "../data/wvs_china.csv")
 
 ```
+
 
 ## dataDesription
 
@@ -271,10 +282,11 @@ p1_pro <- wvs_china_group %>%
 
 p1_pro 
   
-p1_uti <- wvs_china_group %>%
-  ggplot(aes(x = cohort, y = demuti_group, group = cohort)) +
-  geom_point() 
-p1_dem <- ggarrange(p1_pro,p1_uti)
+# p1_uti <- wvs_china_group %>%
+#   ggplot(aes(x = cohort, y = demuti_group, group = cohort)) +
+#   geom_point() 
+# p1_uti
+# p1_dem <- ggarrange(p1_pro,p1_uti)
 ggsave(p1_pro,file = "../fig/demconcept_group.pdf")
 
 ```
@@ -334,6 +346,7 @@ pr_cohort_pro
 
 ## FE
 
+### Cohort
 ```{r}
 fm_pro <- lm(dempro ~ age + gender + edu + interstpol + marriage + socialLevel + period + cohort,
              data = wvs_china,
@@ -562,14 +575,6 @@ cbs2002$ecofamily <- 6 - cbs2002$v20
 cbs2002$ecofamily5 <- 6 - cbs2002$v21
 
 
-# cbs2002 <- cbs2002 %>%
-#   mutate(source = case_when(
-#     v11a == 1 | v11b == 1 |
-#       v11c == 1 | v11d == 1 |
-#       v11f == 1 ~ "0",
-#     v11e == 1 | v11g == 1 ~ "1"
-# ))
-# cbs2002$source[cbs2002$source = 9] <- NA
 # political trust
 cbs2002$trust_party <- cbs2002$v73d
 cbs2002$trust_party_z <- Recode(cbs2002$v73d,"c(0,8,9) = NA") 
@@ -642,7 +647,7 @@ cbs2002$autho <- cbs2002 %>%
   rowMeans(na.rm = TRUE)
 
 cbs2002clean <- cbs2002 %>%
-  select(.,id,wave,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demsuit,demsatisify,leader,expert,army,compete,lifestyle,systembest,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho7,autho8,autho9,ecofamily5,ecofamily,ecocountry5,ecocountry)
+  select(.,id,wave,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_local_max,demlevel,demsuit,demsatisify,leader,expert,army,compete,lifestyle,systembest,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho7,autho8,autho9,ecofamily5,ecofamily,ecocountry5,ecocountry)
 
 # write.csv(cbs2002,file = "../dataclean/cbs2002.csv")
 ```
@@ -795,7 +800,7 @@ cbs2008$autho <- cbs2008 %>%
   rowMeans(na.rm = TRUE)
 
 cbs2008clean <- cbs2008 %>%
-  select(.,id,wave,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demlevel_usa,demsuit,demsatisify,leader,army,lifestyle,proud,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho7,autho8,autho9,ecofamily5,ecofamily,ecocountry,ecocountry5)
+  select(.,id,wave,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_local_max,demlevel,demlevel_usa,demsuit,demsatisify,leader,army,lifestyle,systemsuit,proud,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho7,autho8,autho9,ecofamily5,ecofamily,ecocountry,ecocountry5)
 # write.csv(cbs2008,file = "../dataclean/cbs2008.csv")
 ```
 
@@ -917,6 +922,7 @@ cbs2011$demscore <- cbs2011 %>%
 # nationalism
 cbs2011$proud <- 5 - cbs2011$G1
 cbs2011$lifestyle <- 5 - cbs2011$G6
+cbs2011$systemsuit <- 5 - cbs2011$F9
 
 ## authority
 cbs2011$C3 <- 5 - cbs2011$C3
@@ -949,7 +955,7 @@ cbs2011$autho <- cbs2011 %>%
   rowMeans(na.rm = TRUE)
 
 cbs2011clean <- cbs2011 %>%
-  select(.,id,wave,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demlevel_usa,demsuit,demsatisify,leader,expert,army,compete,lifestyle,proud,demscore,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho7,autho8,autho9,ecofamily5,ecofamily,ecocountry,ecocountry5)
+  select(.,id,wave,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_local_max,demlevel,demlevel_usa,demsuit,demsatisify,leader,expert,army,compete,lifestyle,systemsuit,proud,demscore,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho7,autho8,autho9,ecofamily5,ecofamily,ecocountry,ecocountry5)
 
 ```
 
@@ -1063,6 +1069,7 @@ cbs2014$demscore <- cbs2014 %>%
 # nationslism
 cbs2014$proud <- 5 - cbs2014$H2
 cbs2014$lifestyle <- 5 - cbs2014$H5
+cbs2014$systemsuit <- 5 - cbs2014$F20C
 
 ## authority
 cbs2014$D3G <- 5 - cbs2014$D3G
@@ -1092,7 +1099,7 @@ cbs2014$autho <- cbs2014 %>%
   rowMeans(na.rm = TRUE)
 
 cbs2014clean <- cbs2014 %>%
-  select(.,id,wave,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demlevel_usa,demsuit,demsatisify,leader,expert,army,party,lifestyle,proud,demscore,autho,autho2,autho3,autho4,autho5,autho6,autho8,autho9,ecofamily5,ecofamily,ecocountry,ecocountry5)
+  select(.,id,wave,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_local_max,demlevel,demlevel_usa,demsuit,demsatisify,leader,expert,army,party,lifestyle,systemsuit,proud,demscore,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho8,autho9,ecofamily5,ecofamily,ecocountry,ecocountry5)
 # write.csv(cbs2014,file = "../dataclean/cbs2014.csv")
 ```
 
@@ -1184,7 +1191,7 @@ cbs2019$army <- 5 - cbs2019$F24C
 cbs2019$expert <- 5 - cbs2019$F24D
 
 ## concept of dem
-cbs2019$F9 <- Recode(cbs2019$F9,"c(1,3) = 0; c(2,4) = 1")
+cbs2019$F9 <- Recode(cbs2019$F9,"c(1,3) = 1; c(2,4) = 0")
 cbs2019$F10 <- Recode(cbs2019$F10,"c(1,3) = 1; c(2,4) = 0; 7 = NA")
 cbs2019$F11 <- Recode(cbs2019$F11,"c(1,3) = 0; c(2,4) = 1; 7 = NA")
 cbs2019$F12 <- Recode(cbs2019$F12,"c(1,3) = 1; c(2,4) = 0; 7 = NA")
@@ -1194,6 +1201,7 @@ cbs2019$demscore <- cbs2019 %>%
 # nationalism
 cbs2019$proud <- 5 - cbs2019$H2
 cbs2019$lifestyle  <- Recode(cbs2019$H5,"2 = 0")
+cbs2019$systemsuit <- 5 - cbs2019$F21C
 
 
 # authority
@@ -1222,15 +1230,38 @@ cbs2019$autho9 <- cbs2019$F20H
 cbs2019$autho <- cbs2019 %>%
   select(.,autho1,autho2,autho9) %>%
   rowMeans(na.rm = TRUE)
-  
+cbs2019$yearbirth <- cbs2019$year - cbs2019$age
+cbs2019 <- cbs2019 %>%
+  filter(.,yearbirth >= 1950) %>%
+  mutate(
+    cohort10 = case_when(
+      yearbirth %in% c(1950:1960) ~ 1,
+      yearbirth %in% c(1961:1970) ~ 2,
+      yearbirth %in% c(1971:1980) ~ 3,
+      yearbirth %in% c(1981:1990) ~ 4,
+      yearbirth %in% c(1991:2001) ~ 5
+    ),
+    cohort_political = case_when(
+      yearbirth %in% c(1950:1960) ~ "Cultural Revolution",
+      yearbirth %in% c(1960:1971) ~ "Deng",
+      yearbirth %in% c(1971:1985) ~ "Jiang",
+      yearbirth %in% c(1985:1994) ~ "Hu",
+      yearbirth %in% c(1994:2001) ~ "Xi"
+    )
+  ) 
+
 cbs2019clean <- cbs2019 %>%
-  select(.,id,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_localR,demlevel,demlevel_usa,demsuit,demsatisify,leader,expert,army,party,lifestyle,proud,demscore,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho8,autho9,ecofamily5,ecofamily,ecocountry,ecocountry5)
+  select(.,id,province,year,weight,age,female,party,edu,interstpol,frepol,socialLevel,hukouRural,marriage,trust_party,trust_party_z,trust_partyR,trust_party_max,trust_gover,trust_gover_z,trust_goverR,trust_gover_max,trust_local,trust_local_z,trust_localR,trust_local_max,demlevel,demlevel_usa,demsuit,demsatisify,leader,expert,army,party,lifestyle,systemsuit,proud,demscore,autho,autho1,autho2,autho3,autho4,autho5,autho6,autho8,autho9,ecofamily5,ecofamily,ecocountry,ecocountry5)
+
 ```
+
+### 
 
 
 ## datacombine
 ```{r}
 #| label: cbs data
+#| warning: false
 
 cbs <- cbs2019clean %>%
   bind_rows(.,cbs2014clean) %>%
@@ -1239,8 +1270,6 @@ cbs <- cbs2019clean %>%
   bind_rows(.,cbs2002clean) 
 
 cbs$yearbirth <- cbs$year - cbs$age
-cbs$demscorer <- ifelse(cbs$demscore > mean(cbs$demscore,na.rm = TRUE),1,0)
-cbs$demdiff <- cbs$demlevel - cbs$demlevel_usa
 cbs$year <- as.factor(cbs$year)
 cbs <- cbs %>%
   mutate(
@@ -1270,12 +1299,21 @@ cbs <- cbs %>%
       yearbirth %in% c(1946:1960) ~ 2,
       yearbirth %in% c(1961:1970) ~ 3,
       yearbirth %in% c(1971:1980) ~ 4,
-      yearbirth %in% c(1981:2001) ~ 5,
+      yearbirth %in% c(1981:2001) ~ 5
+    ),
+    cohort_political = case_when(
+      yearbirth %in% c(1905:1931) ~ "Pre",
+      yearbirth %in% c(1931:1948) ~ "Socialist",
+      yearbirth %in% c(1948:1960) ~ "Cultural Revolution",
+      yearbirth %in% c(1960:1971) ~ "Deng",
+      yearbirth %in% c(1971:1985) ~ "Jiang",
+      yearbirth %in% c(1985:1994) ~ "Hu",
+      yearbirth %in% c(1994:2001) ~ "Xi"
     )
   )
 
 
- # write.csv(cbs,file = "../data/cbs.csv")
+  # write.csv(cbs,file = "../data/cbs.csv")
 
 
 t2_cbs <- modelsummary::datasummary(
@@ -1328,9 +1366,10 @@ ls_ctrl <- c(
   year2014 = "2014",
   year2008 = "2008",
   year2019 = "2019"
-)
+) 
 
-# write.csv(cbs,file = "../data/cbs.csv")
+
+  # write.csv(cbs,file = "../data/cbs.csv")
 ```
 
 
@@ -1357,7 +1396,7 @@ fa.diagram(pc_cbs$loadings, digits = 3)
 ## cohort
 # glm_concept <- stan_glmer(as.factor(demscorer) ~ age + female + party + edu + interstpol + frepol + socialLevel + hukouRural + marriage  + (1|cohort) + (1|year),data = cbs,family = binomial)
 
-lm_concept <- lmerTest::lmer(demscore ~ age + female + party + edu + interstpol + frepol + socialLevel + hukouRural + marriage  + (1|cohort) + (1|year),data = cbs,weights = weight)
+lm_concept <- lmerTest::lmer(demscore ~ age + female + party + edu + interstpol + frepol + socialLevel + hukouRural + marriage  + (1|cohort_political) + (1|year),data = cbs,weights = weight)
 lm_demlevel <- update(lm_concept,demlevel ~.)
 lm_demsatisify <- update(lm_concept,demsatisify ~.)
 lm_diffa2c <- update(lm_concept,demdiff ~.)
@@ -1861,7 +1900,7 @@ plot_period_cohort5_effect
 ### cohort
 ```{r}
 ## cohort
-cbs <- read.csv("../data/cbs.csv")
+# cbs <- read.csv("../data/cbs.csv")
 gfm_concept <- glm(as.factor(demscorer) ~ age + female + party + edu + interstpol + frepol + socialLevel + hukouRural + marriage  + as.factor(cohort) + year,data = cbs,family = binomial)
 fm_concept <- lm(demscore ~ age + female + party + edu + interstpol + frepol + socialLevel + hukouRural + marriage  + as.factor(cohort) + year,data = cbs,weights = weight)
 fm_demlevel <- update(fm_concept,demlevel ~.)
@@ -2265,9 +2304,13 @@ rf_period_leader
 
 
 # Authority Orientations
+
 ## Cohort_effect
 ```{r}
 #| label: authority
+cbs_sub <- cbs %>%
+   filter(yearbirth >= 1949)
+
 fm_autho <- update(fm_concept, autho ~ .)
 lm_autho <- update(lm_concept, autho ~ .)
 
@@ -2540,6 +2583,41 @@ pf_period_country
 
 ```
 
+
+# Nationalism
+```{r}
+cbs$nationalism <- cbs %>%
+  select(.,lifestyle,systemsuit) %>%
+  rowMeans(na.rm = TRUE)
+fm_nationalism <- update(fm_autho,nationalism ~.)
+fm1_cohort_nationalism <- broom::tidy(fm_nationalism) %>%
+  filter(grepl("^as.",term)) %>%
+  rename(
+    est = estimate,
+    se = std.error,
+    cohort = term
+  ) %>%
+  mutate(
+    upper = est + 1.96 * se,
+    lower = est - 1.96 * se
+  )
+fm1_cohort_nationalism$cohort <- gsub("^(as.factor)", "",fm1_cohort_nationalism$cohort)
+
+pf_cohort_nationalism <- ggplot(fm1_cohort_nationalism, aes(x = cohort, y = est)) +
+  geom_point() + 
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = .15) + 
+  scale_y_continuous(limits = c(-.8,.8)) +
+  geom_hline(
+    yintercept = 0,
+    colour = "grey60",
+    linetype = 2) +
+  xlab("Cohort") + 
+  ylab("The cohort effect of Nationalism")
+pf_cohort_nationalism
+```
+
+
+
 # Regression
 
 ## wvs
@@ -2624,7 +2702,7 @@ p1_wvs_growth <- mds_china %>%
 
 
 
-### meidation
+### meidation_sub
 ```{r acme_media}
 med_equality <- mediation::mediate(
   model.m = gdppc2equali,
@@ -2653,7 +2731,7 @@ med_private <- mediation::mediate(
   robustSE = TRUE,
   dropobs = TRUE)
 
-med_compete <- mediation::mediate(
+med_respect <- mediation::mediate(
   model.m = gdppc2respect,
   model.y = gdppc2demscore_sub,
   treat = "gdppc_mean_log",
@@ -2749,49 +2827,49 @@ df_private <- tibble(
       prop = "")
   )
 
-df_compete <- tibble(
-  mediator = med_compete$mediator,
+df_respect <- tibble(
+  mediator = med_respect$mediator,
   effect = "aceB",
-  estimate = med_compete$d.avg,
-  p.value = med_compete$d.avg.p,
-  conf.low = med_compete$d.avg.ci[1],
-  conf.high = med_compete$d.avg.ci[2],
-  prop = scales::percent(med_compete$n.avg)) %>%
+  estimate = med_respect$d.avg,
+  p.value = med_respect$d.avg.p,
+  conf.low = med_respect$d.avg.ci[1],
+  conf.high = med_respect$d.avg.ci[2],
+  prop = scales::percent(med_respect$n.avg)) %>%
   bind_rows(
     tibble(
-      mediator = med_compete$mediator,
+      mediator = med_respect$mediator,
       effect = "ade",
-      estimate = med_compete$z.avg,
-      p.value = med_compete$z.avg.p,
-      conf.low = med_compete$z.avg.ci[1],
-      conf.high = med_compete$z.avg.ci[2],
+      estimate = med_respect$z.avg,
+      p.value = med_respect$z.avg.p,
+      conf.low = med_respect$z.avg.ci[1],
+      conf.high = med_respect$z.avg.ci[2],
       prop = "")
       ) %>%
   bind_rows(
     tibble(
-      mediator = med_compete$mediator,
+      mediator = med_respect$mediator,
       effect = "total",
-      estimate = med_compete$tau.coef,
-      p.value = med_compete$tau.p,
-      conf.low = med_compete$tau.ci[1],
-      conf.high = med_compete$tau.ci[2],
+      estimate = med_respect$tau.coef,
+      p.value = med_respect$tau.p,
+      conf.low = med_respect$tau.ci[1],
+      conf.high = med_respect$tau.ci[2],
       prop = "")
   )
 
 mediation_gdppc <- df_equality %>%
-  bind_rows(.,df_tolerance,df_private,df_compete)
+  bind_rows(.,df_tolerance,df_private,df_respect)
 
 df_mediation_gdppc <- mediation_gdppc %>%
   filter(effect != "total") %>%
   mutate(
-    across(where(is.numeric),~ round(.,3)),
+    across(where(is.numeric),~ round(.,5)),
     sig = p.value <= 0.05,
     mediator_lab = rep(
       c(
         "Gender Euqlity",
-        "Tolerance",
-        "Big Government",
-        "repect"),
+        "Social Tolerance",
+        "Free Competition",
+        "Repect Authority"),
       each = 2),
     mediator_lab = 
       ifelse(effect == "aceB",
@@ -2817,8 +2895,8 @@ df_mediation_gdppc <- df_mediation_gdppc %>%
   group_by(effect) %>%
   mutate(estimate_abs = ifelse(p.value <= 0.05, abs(estimate),0),
          total = sum(estimate_abs),
-         propAceB = estimate_abs/total,
-         propAceB = scales::percent(propAceB),
+         propAceB = round(estimate_abs/total,3),
+         propAceB = scales::percent(propAceB,accuracy = 0.1),
          prop = ifelse(sig, propAceB, ""),
          arrow = ifelse(sig, propAceB, ""),
          lineStyle = ifelse(sig, "solid", "dashed")
@@ -2850,14 +2928,14 @@ plot_mediation <- DiagrammeR::grViz(diagram =
 
 
  
-  a -> g [style = 'dashed', label = '@@4-2'] 
+  a -> g [style = 'solid', label = '@@4-2'] 
        }
 [1]: df_mediation_gdppc$mediator_lab[df_mediation_gdppc$effect == 'aceB']
 [2]: df_mediation_gdppc$lineStyle[df_mediation_gdppc$effect == 'aceB']
 [3]: df_mediation_gdppc$arrow[df_mediation_gdppc$effect == 'aceB']
 [4]: df_mediation_gdppc$mediator_lab[df_mediation_gdppc$effect == 'ade']
   ")
-# plot_mediation
+ # plot_mediation
 #   export_svg() %>% 
 #   charToRaw() %>% 
 #   rsvg_png("../outputs/plot_mediation_cen2parti.png")
@@ -2869,6 +2947,7 @@ plot_mediation <- DiagrammeR::grViz(diagram =
 
 
 ```
+
 
 ### table_mediation effect 
 ```{r}
@@ -2973,13 +3052,6 @@ results_cen
 ```
 
 
-### concept2level
-```{r}
-diff2level <- lm(demlevel ~ demdiff + age +)
-```
-
-
-
 
 ### plot_direct
 
@@ -3022,19 +3094,259 @@ ggsave(plot_direct,file = "../fig/direct_demscore_sub.pdf")
 
 
 ### robastcheck
-```{r}
-fulldata_wvs <- fulldata_wvs %>%
-  group_by(cohort) %>%
-  mutate(dem = mean(demscore_sub,na.rm = TRUE)) %>%
-  ungroup()
 
+
+#### mediation_demscore
+##### meidation_demscore
+```{r acme_media}
+med_equality_check <- mediation::mediate(
+  model.m = gdppc2equali,
+  model.y = gdppc2demscore,
+  treat = "gdppc_mean_log",
+  mediator = "equali_genderz",
+  sims = 1000,
+  robustSE = TRUE,
+  dropobs = TRUE)
+
+med_tolerance_check <- mediation::mediate(
+  model.m = gdppc2tolerance,
+  model.y = gdppc2demscore,
+  treat = "gdppc_mean_log",
+  mediator = "tolerancez",
+  sims = 1000,
+  robustSE = TRUE,
+  dropobs = TRUE)
+
+med_private_check <- mediation::mediate(
+  model.m = gdppc2private,
+  model.y = gdppc2demscore,
+  treat = "gdppc_mean_log",
+  mediator = "privatez",
+  sims = 1000,
+  robustSE = TRUE,
+  dropobs = TRUE)
+
+med_respect_check <- mediation::mediate(
+  model.m = gdppc2respect,
+  model.y = gdppc2demscore,
+  treat = "gdppc_mean_log",
+  mediator = "respect",
+  sims = 1000,
+  robustSE = TRUE,
+  dropobs = TRUE)
+
+df_equality_check <- tibble(
+  mediator = med_equality_check$mediator,
+  effect = "aceB",
+  estimate = med_equality_check$d.avg,
+  p.value = med_equality_check$d.avg.p,
+  conf.low = med_equality_check$d.avg.ci[1],
+  conf.high = med_equality_check$d.avg.ci[2],
+  prop = scales::percent(med_equality$n.avg)) %>%
+  bind_rows(
+    tibble(
+      mediator = med_equality_check$mediator,
+      effect = "ade",
+      estimate = med_equality_check$z.avg,
+      p.value = med_equality_check$z.avg.p,
+      conf.low = med_equality_check$z.avg.ci[1],
+      conf.high = med_equality_check$z.avg.ci[2],
+      prop = "")
+      ) %>%
+  bind_rows(
+    tibble(
+      mediator = med_equality_check$mediator,
+      effect = "total",
+      estimate = med_equality_check$tau.coef,
+      p.value = med_equality_check$tau.p,
+      conf.low = med_equality_check$tau.ci[1],
+      conf.high = med_equality_check$tau.ci[2],
+      prop = "")
+  )
+
+df_tolerance_check <- tibble(
+  mediator = med_tolerance_check$mediator,
+  effect = "aceB",
+  estimate = med_tolerance_check$d.avg,
+  p.value = med_tolerance_check$d.avg.p,
+  conf.low = med_tolerance_check$d.avg.ci[1],
+  conf.high = med_tolerance_check$d.avg.ci[2],
+  prop = scales::percent(med_tolerance_check$n.avg)) %>%
+  bind_rows(
+    tibble(
+      mediator = med_tolerance_check$mediator,
+      effect = "ade",
+      estimate = med_tolerance_check$z.avg,
+      p.value = med_tolerance_check$z.avg.p,
+      conf.low = med_tolerance_check$z.avg.ci[1],
+      conf.high = med_tolerance_check$z.avg.ci[2],
+      prop = "")
+      ) %>%
+  bind_rows(
+    tibble(
+      mediator = med_tolerance_check$mediator,
+      effect = "total",
+      estimate = med_tolerance_check$tau.coef,
+      p.value = med_tolerance_check$tau.p,
+      conf.low = med_tolerance_check$tau.ci[1],
+      conf.high = med_tolerance_check$tau.ci[2],
+      prop = "")
+  )
+
+df_private_check <- tibble(
+  mediator = med_private_check$mediator,
+  effect = "aceB",
+  estimate = med_private_check$d.avg,
+  p.value = med_private_check$d.avg.p,
+  conf.low = med_private_check$d.avg.ci[1],
+  conf.high = med_private_check$d.avg.ci[2],
+  prop = scales::percent(med_private_check$n.avg)) %>%
+  bind_rows(
+    tibble(
+      mediator = med_private_check$mediator,
+      effect = "ade",
+      estimate = med_private_check$z.avg,
+      p.value = med_private_check$z.avg.p,
+      conf.low = med_private_check$z.avg.ci[1],
+      conf.high = med_private_check$z.avg.ci[2],
+      prop = "")
+      ) %>%
+  bind_rows(
+    tibble(
+      mediator = med_private_check$mediator,
+      effect = "total",
+      estimate = med_private_check$tau.coef,
+      p.value = med_private_check$tau.p,
+      conf.low = med_private_check$tau.ci[1],
+      conf.high = med_private_check$tau.ci[2],
+      prop = "")
+  )
+
+df_respect_check <- tibble(
+  mediator = med_respect_check$mediator,
+  effect = "aceB",
+  estimate = med_respect_check$d.avg,
+  p.value = med_respect_check$d.avg.p,
+  conf.low = med_respect_check$d.avg.ci[1],
+  conf.high = med_respect_check$d.avg.ci[2],
+  prop = scales::percent(med_respect_check$n.avg)) %>%
+  bind_rows(
+    tibble(
+      mediator = med_respect_check$mediator,
+      effect = "ade",
+      estimate = med_respect_check$z.avg,
+      p.value = med_respect_check$z.avg.p,
+      conf.low = med_respect_check$z.avg.ci[1],
+      conf.high = med_respect_check$z.avg.ci[2],
+      prop = "")
+      ) %>%
+  bind_rows(
+    tibble(
+      mediator = med_respect_check$mediator,
+      effect = "total",
+      estimate = med_respect_check$tau.coef,
+      p.value = med_respect_check$tau.p,
+      conf.low = med_respect_check$tau.ci[1],
+      conf.high = med_respect_check$tau.ci[2],
+      prop = "")
+  )
+
+mediation_gdppc_check <- df_equality_check %>%
+  bind_rows(.,df_tolerance_check,df_private_check,df_respect_check)
+
+df_mediation_gdppc_check <- mediation_gdppc_check %>%
+  filter(effect != "total") %>%
+  mutate(
+    across(where(is.numeric),~ round(.,5)),
+    sig = p.value <= 0.05,
+    mediator_lab = rep(
+      c(
+        "Gender Euqlity",
+        "Social Tolerance",
+        "Free Competition",
+        "Repect Authority"),
+      each = 2),
+    mediator_lab = 
+      ifelse(effect == "aceB",
+             paste0(
+               mediator_lab,
+               "\n ",
+               estimate,
+               "\n [",
+               conf.low,
+               ", ",
+               conf.high,
+               "]"), 
+             paste0(
+               estimate,
+               "\n [",
+               conf.low,
+               ", ",
+               conf.high,
+               "]"))
+    )
+
+df_mediation_gdppc_check <- df_mediation_gdppc_check %>%
+  group_by(effect) %>%
+  mutate(estimate_abs = ifelse(p.value <= 0.05, abs(estimate),0),
+         total = sum(estimate_abs),
+         propAceB = round(estimate_abs/total,3),
+         propAceB = scales::percent(propAceB,accuracy = 0.1),
+         prop = ifelse(sig, propAceB, ""),
+         arrow = ifelse(sig, propAceB, ""),
+         lineStyle = ifelse(sig, "solid", "dashed")
+ )
+
+
+plot_mediation_check <- DiagrammeR::grViz(diagram = 
+       "digraph {
+ graph [layout = dot, rankdir = LR]
+ node [shape = box]
+ edge [arrowhead = vee]
+ 
+ a [label = 'GDP']
+ b [label = '@@1-1']
+ c [label = '@@1-2']
+ d [label = '@@1-3']
+ e [label = '@@1-4']
+ g [label = 'Dem Concept']
+
+ a -> b
+ a -> c
+ a -> d
+ a -> e
+ 
+ b -> g [style = '@@2-1', label = '@@3-1']
+ c -> g [style = '@@2-2', label = '@@3-2']
+ d -> g [style = '@@2-3', label = '@@3-3']
+ e -> g [style = '@@2-4', label = '@@3-4']
+
+
+ 
+  a -> g [style = 'solid', label = '@@4-2'] 
+       }
+[1]: df_mediation_gdppc_check$mediator_lab[df_mediation_gdppc_check$effect == 'aceB']
+[2]: df_mediation_gdppc_check$lineStyle[df_mediation_gdppc_check$effect == 'aceB']
+[3]: df_mediation_gdppc_check$arrow[df_mediation_gdppc_check$effect == 'aceB']
+[4]: df_mediation_gdppc_check$mediator_lab[df_mediation_gdppc_check$effect == 'ade']
+  ")
+ # plot_mediation
+#   export_svg() %>% 
+#   charToRaw() %>% 
+#   rsvg_png("../outputs/plot_mediation_cen2parti.png")
+# 
+# include_graphics("../outputs/plot_mediation_cen2parti.png")
+
+# summary(med)
+#plot(med)
+
+plot_mediation_check
+```
+
+```{r}
 gdppc2demscore_direct_check <- update(gdppc2demscore_directi, lag(demscore_sub) ~ . + gdppc_mean_log)
 
-gdppc2equali_check <- 
-  
-mlist_check <- list(
-  gdppc2demscore_sub_check
-)
+
 msummary(gdppc2demscore_sub,
          stars = TRUE,
          coef_omit = "(Intercept)",
@@ -3045,7 +3357,25 @@ msummary(gdppc2demscore_sub,
 
 
 
+##### fator analysis
+```{r}
+df_demscore <- wvs_china %>%
+  select(.,E224s_na,E226_na,E227s_na,E229_na)
+  
+psych::KMO(df_demscore)
+bartlett.test(df_demscore)
+pc_demscore <- principal(df_demscore,2)
+pc_demscore
+fa.diagram(pc_demscore$loadings, digits = 3)
+
+```
+
 ## cbs
+### enterprise
+```{r}
+enterprise <- read_dta("../data/eco/company_exist_enterprizetype.dta")
+```
+
 ### autho
 #### gppc_mean's effect
 ```{r}
