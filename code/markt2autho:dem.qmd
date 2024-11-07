@@ -1,0 +1,30 @@
+---
+title: "Reachnote"
+format: html
+editor: visual
+---
+# packageLoda
+
+```{r Prelode}
+#| label: package
+#| echo: false
+set.seed(0930)
+options (warn = -1)
+library(pacman)
+p_load("rio",
+       "here",
+       "tidyverse",
+       "haven",
+       "car",
+       "readxl",
+       "countrycode",
+       "lmerTest",
+       "modelsummary",
+       "dotwhisker",
+       "ggplot2",
+       "optimx",
+       "emmeans",
+       "ggpubr",
+       "psych")
+```
+
