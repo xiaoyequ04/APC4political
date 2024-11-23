@@ -1,0 +1,38 @@
+{\rtf1\fs24
+\trowd\trgaph75\trleft-75\intbl\trqc\clbrdrt\brdrs\cellx1872\clbrdrt\brdrs\cellx3312
+\ql \cell\qc (1)\cell\row
+\trowd\trgaph75\trleft-75\trqc\cellx1872\cellx3312
+\trowd\trgaph75\trleft-75\trqc\clbrdrb\brdrs\cellx1872\clbrdrb\brdrs\cellx3312
+\ql VARIABLES\cell\qc y\cell\row
+\trowd\trgaph75\trleft-75\trqc\cellx1872\cellx3312
+\ql \cell\qc \cell\row
+\ql market\cell\qc 0.005\cell\row
+\ql \cell\qc (1.05)\cell\row
+\ql age\cell\qc 0.006***\cell\row
+\ql \cell\qc (11.29)\cell\row
+\ql female\cell\qc 0.045***\cell\row
+\ql \cell\qc (3.10)\cell\row
+\ql edu\cell\qc -0.061***\cell\row
+\ql \cell\qc (-7.07)\cell\row
+\ql party\cell\qc -0.004\cell\row
+\ql \cell\qc (-0.18)\cell\row
+\ql interstpol\cell\qc -0.014\cell\row
+\ql \cell\qc (-1.39)\cell\row
+\ql frepol\cell\qc 0.009\cell\row
+\ql \cell\qc (1.61)\cell\row
+\ql marriage\cell\qc 0.003\cell\row
+\ql \cell\qc (0.18)\cell\row
+\ql hukourural\cell\qc 0.031**\cell\row
+\ql \cell\qc (1.97)\cell\row
+\ql sociallevel\cell\qc 0.009**\cell\row
+\ql \cell\qc (2.05)\cell\row
+\ql Constant\cell\qc 2.250***\cell\row
+\ql \cell\qc (34.85)\cell\row
+\ql \cell\qc \cell\row
+\ql Observations\cell\qc 4,206\cell\row
+\trowd\trgaph75\trleft-75\trqc\trbrdrb\brdrs\clbrdrb\brdrs\cellx1872\clbrdrb\brdrs\cellx3312
+\ql R-squared\cell\qc 0.095\cell\row
+\pard\qc
+t-statistics in parentheses\par
+*** p<0.01, ** p<0.05, * p<0.1\par
+}
